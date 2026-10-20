@@ -1,0 +1,197 @@
+<!-- === [TAG VIEW: Tampilan Semua Dokumen (all_docs_view.html)] === -->
+<!-- Penjelasan: Modul tampilan repositori seluruh berkas terindeks, dilengkapi filter multi-kategori, slider akurasi OCR, opsi pengurutan, pencarian terintegrasi, dan tabel data dokumen -->
+<!-- Section Container: All Documents View -->
+<div id="all-docs-view" class="hidden flex flex-col h-full gap-lg">
+    <!-- === [TAG KOMPONEN: Header & Tombol Aksi Dokumen] === -->
+    <!-- Penjelasan: Menampilkan judul bagian serta tombol pintasan pembuatan folder baru dan pembukaan modal unggah berkas -->
+    <!-- Page Header & Action Bar -->
+    <div class="flex flex-col gap-md">
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-md">
+            <div>
+                <h2 class="font-headline-lg text-headline-lg text-on-surface tracking-tight font-bold" id="all-docs-title">Semua Dokumen</h2>
+                <p class="text-body-md text-on-surface-variant" id="all-docs-subtitle">Kelola arsip dokumen cerdas dan ekstraksi OCR Anda.</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <button id="btn-all-docs-new-folder" type="button" class="flex items-center gap-2 px-md py-2.5 bg-surface border border-outline-variant text-on-surface font-semibold rounded-xl hover:bg-surface-container transition-all active:scale-95 text-body-md shadow-sm">
+                    <span class="material-symbols-outlined text-[20px]">create_new_folder</span>
+                    <span>Folder Baru</span>
+                </button>
+                <button id="btn-all-docs-upload" type="button" class="flex items-center gap-2 px-lg py-2.5 bg-primary text-white font-semibold rounded-xl hover:bg-[#4338CA] transition-all shadow-lg shadow-primary/20 active:scale-95 text-body-md">
+                    <span class="material-symbols-outlined text-[20px]">upload_file</span>
+                    <span>Unggah Dokumen</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- === [TAG KOMPONEN: Bilah Aksi Massal & Filter Cepat (Bulk Action Bar)] === -->
+        <!-- Penjelasan: Checkbox pilih semua, tombol aksi massal (unduh, pindah, hapus terpilih), pencarian cepat dokumen, dan dropdown urutan -->
+        <!-- Multi-select & Quick Tools Bar -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between bg-surface-container-low rounded-xl px-lg py-3 border border-outline-variant/40 gap-md">
+            <div class="flex items-center gap-4 flex-shrink-0">
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" id="select-all-docs-checkbox" class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary/20">
+                    <span class="text-sm font-semibold text-on-surface-variant">Pilih Semua</span>
+                </label>
+                <div class="h-4 w-[1px] bg-outline-variant/60"></div>
+                <div class="flex items-center gap-1">
+                    <button id="btn-bulk-download" class="p-2 rounded-lg hover:bg-surface-container text-on-surface-variant disabled:opacity-40 transition-colors" title="Unduh yang dipilih" disabled>
+                        <span class="material-symbols-outlined text-[20px]">download</span>
+                    </button>
+                    <button id="btn-bulk-move" class="p-2 rounded-lg hover:bg-surface-container text-on-surface-variant disabled:opacity-40 transition-colors" title="Pindahkan yang dipilih" disabled>
+                        <span class="material-symbols-outlined text-[20px]">drive_file_move</span>
+                    </button>
+                    <button id="btn-bulk-delete" class="p-2 rounded-lg hover:bg-surface-container text-error disabled:opacity-40 transition-colors" title="Hapus yang dipilih" disabled>
+                        <span class="material-symbols-outlined text-[20px]">delete</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Search Bar in Toolbar (Right above the table) -->
+            <div class="flex-1 max-w-lg mx-0 md:mx-4 w-full">
+                <div class="relative w-full">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px] pointer-events-none">search</span>
+                    <input type="text" id="all-docs-search-input" placeholder="Cari nama dokumen atau isi teks file..."
+                        class="w-full pl-9 pr-8 py-2 bg-surface border border-outline-variant rounded-xl text-xs sm:text-sm text-on-surface placeholder:text-on-surface-variant/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm" />
+                    <button id="all-docs-search-clear" type="button"
+                        class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface p-0.5 rounded-full hover:bg-surface-container">
+                        <span class="material-symbols-outlined text-[15px]">close</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4 flex-shrink-0">
+                <div class="flex items-center gap-2 text-sm text-on-surface-variant">
+                    <span>Urutkan:</span>
+                    <select id="docs-sort-select" class="bg-surface border border-outline-variant rounded-lg px-2.5 py-1 text-xs font-semibold focus:ring-1 focus:ring-primary outline-none cursor-pointer">
+                        <option value="date_desc">Tanggal Ubah (Terbaru)</option>
+                        <option value="date_asc">Tanggal Ubah (Terlama)</option>
+                        <option value="name_asc">Nama Dokumen (A-Z)</option>
+                        <option value="size_desc">Ukuran File (Terbesar)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- === [TAG KOMPONEN: Panel Bilah Samping Filter (Filter Sidebar Panel)] === -->
+    <!-- Penjelasan: Kontrol penyaringan dokumen berdasarkan rentang tanggal, jenis berkas (PDF/Office/Web/Gambar), slider akurasi OCR minimum, dan kategori format -->
+    <!-- Main Split View: Filter Sidebar & Documents Table -->
+    <div class="flex-1 flex flex-col lg:flex-row gap-lg overflow-hidden">
+        <!-- Filter Sidebar Panel -->
+        <aside class="w-full lg:w-72 flex flex-col gap-6 overflow-y-auto pr-1 custom-scrollbar">
+            <div class="glass-card p-lg rounded-2xl flex flex-col gap-6 border border-outline-variant/60 shadow-sm">
+                <div class="flex items-center justify-between border-b border-outline-variant/40 pb-3">
+                    <h3 class="font-bold text-on-surface flex items-center gap-2 text-title-md">
+                        <span class="material-symbols-outlined text-primary text-[20px]">filter_list</span>
+                        Filter
+                    </h3>
+                    <button id="btn-clear-filters" class="text-[11px] font-bold text-primary hover:underline uppercase tracking-tight">Hapus Semua</button>
+                </div>
+
+                <!-- Date Range -->
+                <div>
+                    <label class="text-xs font-bold text-on-surface-variant uppercase tracking-widest block mb-2">Rentang Waktu</label>
+                    <select id="filter-date-range" class="w-full bg-surface border border-outline-variant rounded-xl px-3 py-2 text-body-md focus:ring-2 focus:ring-primary/20 outline-none cursor-pointer">
+                        <option value="all" selected>Semua Waktu</option>
+                        <option value="30_days">30 hari terakhir</option>
+                        <option value="7_days">7 hari terakhir</option>
+                        <option value="6_months">6 bulan terakhir</option>
+                    </select>
+                </div>
+
+                <!-- Document Type Checkboxes -->
+                <div>
+                    <label class="text-xs font-bold text-on-surface-variant uppercase tracking-widest block mb-3">Jenis Dokumen</label>
+                    <div class="space-y-2.5">
+                        <label class="flex items-center gap-2.5 text-body-md cursor-pointer group">
+                            <input type="checkbox" class="doc-type-checkbox w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary/20" value="pdf" checked>
+                            <span class="group-hover:text-primary transition-colors text-sm font-medium">Dokumen PDF</span>
+                        </label>
+                        <label class="flex items-center gap-2.5 text-body-md cursor-pointer group">
+                            <input type="checkbox" class="doc-type-checkbox w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary/20" value="office" checked>
+                            <span class="group-hover:text-primary transition-colors text-sm font-medium">Office &amp; Sheets</span>
+                        </label>
+                        <label class="flex items-center gap-2.5 text-body-md cursor-pointer group">
+                            <input type="checkbox" class="doc-type-checkbox w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary/20" value="web" checked>
+                            <span class="group-hover:text-primary transition-colors text-sm font-medium">Web &amp; Teks</span>
+                        </label>
+                        <label class="flex items-center gap-2.5 text-body-md cursor-pointer group">
+                            <input type="checkbox" class="doc-type-checkbox w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary/20" value="image" checked>
+                            <span class="group-hover:text-primary transition-colors text-sm font-medium">Pemindaian OCR / Gambar</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- OCR Min Confidence Slider -->
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="text-xs font-bold text-on-surface-variant uppercase tracking-widest block">Akurasi Minimum</label>
+                        <span class="text-xs font-mono-md text-primary bg-primary/10 px-2 py-0.5 rounded-md font-bold" id="filter-confidence-val">80%</span>
+                    </div>
+                    <input type="range" id="filter-confidence-slider" min="50" max="99" value="80" class="w-full h-1.5 bg-outline-variant rounded-lg appearance-none cursor-pointer accent-primary">
+                </div>
+
+                <!-- Tag Filtering -->
+                <div>
+                    <label class="text-xs font-bold text-on-surface-variant uppercase tracking-widest block mb-3">Kategori Format</label>
+                    <div class="flex flex-wrap gap-2" id="filter-tags-group">
+                        <button type="button" class="tag-pill px-3 py-1.5 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full border border-indigo-200 active" data-tag="all">Semua Tag</button>
+                        <button type="button" class="tag-pill px-3 py-1.5 bg-surface border border-outline-variant text-on-surface-variant text-xs font-bold rounded-full hover:border-primary transition-colors" data-tag="PDF Documents">Dokumen PDF</button>
+                        <button type="button" class="tag-pill px-3 py-1.5 bg-surface border border-outline-variant text-on-surface-variant text-xs font-bold rounded-full hover:border-primary transition-colors" data-tag="Office &amp; Sheets">Office</button>
+                        <button type="button" class="tag-pill px-3 py-1.5 bg-surface border border-outline-variant text-on-surface-variant text-xs font-bold rounded-full hover:border-primary transition-colors" data-tag="Web Pages">Halaman Web</button>
+                        <button type="button" class="tag-pill px-3 py-1.5 bg-surface border border-outline-variant text-on-surface-variant text-xs font-bold rounded-full hover:border-primary transition-colors" data-tag="Text &amp; Code">Teks &amp; Kode</button>
+                        <button type="button" class="tag-pill px-3 py-1.5 bg-surface border border-outline-variant text-on-surface-variant text-xs font-bold rounded-full hover:border-primary transition-colors" data-tag="Image OCR">OCR Gambar</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bento Automation Promo Card -->
+            <div class="bg-primary text-white p-lg rounded-2xl shadow-lg shadow-primary/20 relative overflow-hidden">
+                <div class="relative z-10">
+                    <h4 class="font-bold text-title-md mb-1">Otomatiskan Tugas</h4>
+                    <p class="text-xs text-white/80 mb-4">Integrasikan DocuMind dengan alur kerja Anda melalui REST API.</p>
+                    <button id="btn-view-api-docs" class="bg-white text-primary px-4 py-2 rounded-lg text-xs font-bold hover:bg-surface-bright transition-colors shadow-sm">Lihat Dokumentasi API</button>
+                </div>
+                <span class="material-symbols-outlined absolute -bottom-4 -right-4 text-[100px] text-white/10" style="font-variation-settings: 'FILL' 1;">integration_instructions</span>
+            </div>
+        </aside>
+
+        <!-- === [TAG KOMPONEN: Tabel Data Dokumen & Cuplikan Teks OCR] === -->
+        <!-- Penjelasan: Tabel responsif untuk menampilkan daftar dokumen, status pemrosesan, cuplikan hasil ekstraksi, ukuran berkas, tanggal pembaruan, dan aksi -->
+        <!-- Documents Table Area -->
+        <div class="flex-1 flex flex-col overflow-hidden bg-surface border border-outline-variant rounded-2xl shadow-sm">
+            <div class="overflow-x-auto flex-1 custom-scrollbar">
+                <table class="w-full text-left border-collapse">
+                    <thead class="sticky top-0 bg-surface-container-low z-20">
+                        <tr class="text-label-md text-on-surface-variant uppercase tracking-wider border-b border-outline-variant text-[11px]">
+                            <th class="py-4 px-lg w-10"></th>
+                            <th class="py-4 px-4 font-bold">Nama Dokumen</th>
+                            <th class="py-4 px-4 font-bold whitespace-nowrap">Status</th>
+                            <th class="py-4 px-4 font-bold w-1/3">Cuplikan OCR</th>
+                            <th class="py-4 px-4 font-bold whitespace-nowrap">Kategori</th>
+                            <th class="py-4 px-4 font-bold text-right whitespace-nowrap">Ukuran / Tanggal</th>
+                            <th class="py-4 px-4 w-12 text-right">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-outline-variant/40" id="all-docs-table-body">
+                        <!-- Populated dynamically via JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- === [TAG KOMPONEN: Navigasi Paginasi Tabel (Pagination Footer)] === -->
+            <!-- Penjelasan: Informasi jumlah berkas terindeks dan tombol navigasi halaman (sebelumnya, nomor halaman, berikutnya) -->
+            <!-- Table Footer -->
+            <div class="px-lg py-md border-t border-outline-variant bg-surface-container-lowest flex items-center justify-between">
+                <span class="text-label-md font-label-md text-on-surface-variant" id="all-docs-pagination-info">Menampilkan 1-10 dari 10 dokumen</span>
+                <div class="flex items-center gap-2">
+                    <button class="material-symbols-outlined p-2 text-on-surface-variant hover:bg-surface-container rounded-lg disabled:opacity-30 cursor-pointer text-sm" id="all-docs-prev">chevron_left</button>
+                    <div class="flex items-center px-2 gap-1" id="all-docs-pagination-numbers">
+                        <span class="px-3 py-1 bg-primary text-white rounded-md text-xs font-bold cursor-pointer">1</span>
+                    </div>
+                    <button class="material-symbols-outlined p-2 text-on-surface-variant hover:bg-surface-container rounded-lg disabled:opacity-30 cursor-pointer text-sm" id="all-docs-next">chevron_right</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

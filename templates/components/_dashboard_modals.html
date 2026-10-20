@@ -1,0 +1,197 @@
+<!-- === [TAG KOMPONEN: Kumpulan Dialog Modal Dasbor (_dashboard_modals.html)] === -->
+<!-- Penjelasan: Berisi modal pengaturan profil pengguna, modal ganti kata sandi dengan indikator kekuatan, dan modal rincian jenis berkas penyimpanan -->
+
+<!-- === [TAG MODAL: Pengaturan Profil Pengguna (profile-settings-modal)] === -->
+<!-- Penjelasan: Formulir pengubahan foto profil (avatar), nama lengkap, dan alamat email -->
+<!-- Profile Settings Modal -->
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-on-background/50 backdrop-blur-sm p-4 hidden" id="profile-settings-modal">
+    <div class="relative bg-surface dark:bg-inverse-surface rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-outline-variant animate-in fade-in zoom-in duration-200">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between px-lg py-md border-b border-outline-variant bg-surface-container-lowest">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-primary text-2xl">account_circle</span>
+                <div>
+                    <h3 class="font-title-md text-title-md font-bold text-on-surface">Atur Profile</h3>
+                    <p class="font-label-md text-xs text-on-surface-variant">Kelola nama, foto profil, dan akun Anda</p>
+                </div>
+            </div>
+            <button class="p-2 hover:bg-surface-container-highest rounded-full transition-colors close-modal-btn" data-modal="profile-settings-modal">
+                <span class="material-symbols-outlined text-on-surface-variant">close</span>
+            </button>
+        </div>
+
+        <!-- Modal Body -->
+        <form id="profile-settings-form" class="p-lg space-y-md">
+            <!-- Avatar Upload Section -->
+            <div class="flex flex-col items-center gap-3 py-2">
+                <div class="relative group cursor-pointer" id="avatar-picker-trigger">
+                    <div class="w-24 h-24 rounded-full overflow-hidden border-2 border-primary/30 shadow-md bg-primary/10 flex items-center justify-center text-primary font-black text-2xl relative" id="profile-avatar-container">
+                        <span id="profile-avatar-initials">DM</span>
+                        <img id="profile-avatar-img" src="" alt="Avatar" class="w-full h-full object-cover hidden" />
+                        <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
+                            <span class="material-symbols-outlined text-white">photo_camera</span>
+                        </div>
+                    </div>
+                </div>
+                <input type="file" id="profile-avatar-input" accept="image/*" class="hidden" />
+                <button type="button" id="btn-change-photo" class="text-xs font-bold text-primary hover:underline">Ganti Foto Profil</button>
+            </div>
+
+            <!-- Form Fields -->
+            <div>
+                <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Nama Lengkap</label>
+                <input type="text" id="profile-name-input" class="w-full bg-surface-container-low border border-outline-variant rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:border-primary" placeholder="Nama Anda" value="{{ user.full_name if user else 'DocuMind User' }}" required />
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Email</label>
+                <input type="email" id="profile-email-input" class="w-full bg-surface-container-low border border-outline-variant rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:border-primary" placeholder="email@domain.com" value="{{ user.email if user else 'user@documind.ai' }}" required />
+            </div>
+
+            <!-- Ganti Password Link -->
+            <div class="pt-1">
+                <button type="button" id="btn-open-change-password" class="flex items-center gap-2 text-xs font-bold text-primary hover:underline">
+                    <span class="material-symbols-outlined text-sm">lock_reset</span>
+                    Ganti Password
+                </button>
+            </div>
+
+            <!-- Modal Footer Buttons -->
+            <div class="flex items-center justify-end gap-3 pt-4 border-t border-outline-variant">
+                <button type="button" class="px-5 py-2.5 rounded-xl border border-outline-variant text-on-surface font-bold text-xs hover:bg-surface-container transition-colors close-modal-btn" data-modal="profile-settings-modal">
+                    Batal
+                </button>
+                <button type="submit" id="profile-save-btn" class="px-6 py-2.5 rounded-xl bg-primary text-white font-bold text-xs hover:bg-[#4338CA] transition-all shadow-md shadow-primary/20 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-sm">save</span>
+                    Simpan Perubahan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- === [TAG MODAL: Penggantian Kata Sandi (change-password-modal)] === -->
+<!-- Penjelasan: Formulir ganti password dengan verifikasi password lama, password baru, indikator kekuatan password real-time, dan konfirmasi -->
+<!-- Change Password Modal -->
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-on-background/50 backdrop-blur-sm p-4 hidden" id="change-password-modal">
+    <div class="relative bg-surface dark:bg-inverse-surface rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-outline-variant animate-in fade-in zoom-in duration-200">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between px-lg py-md border-b border-outline-variant bg-surface-container-lowest">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-primary text-2xl">lock_reset</span>
+                <div>
+                    <h3 class="font-title-md text-title-md font-bold text-on-surface">Ganti Password</h3>
+                    <p class="font-label-md text-xs text-on-surface-variant">Masukkan password lama dan password baru Anda</p>
+                </div>
+            </div>
+            <button class="p-2 hover:bg-surface-container-highest rounded-full transition-colors close-modal-btn" data-modal="change-password-modal">
+                <span class="material-symbols-outlined text-on-surface-variant">close</span>
+            </button>
+        </div>
+
+        <!-- Modal Body -->
+        <form id="change-password-form" class="p-lg space-y-md">
+            <!-- Alert area -->
+            <div id="change-pw-alert" class="hidden p-3 rounded-xl text-xs font-bold flex items-start gap-2"></div>
+
+            <div>
+                <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Password Lama</label>
+                <div class="relative">
+                    <input type="password" id="pw-old" class="w-full bg-surface-container-low border border-outline-variant rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-primary pr-10" placeholder="Masukkan password lama" required />
+                    <button type="button" class="toggle-pw-visibility absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface" data-target="pw-old">
+                        <span class="material-symbols-outlined text-[18px]">visibility_off</span>
+                    </button>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Password Baru</label>
+                <div class="relative">
+                    <input type="password" id="pw-new" class="w-full bg-surface-container-low border border-outline-variant rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-primary pr-10" placeholder="Minimal 6 karakter" required />
+                    <button type="button" class="toggle-pw-visibility absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface" data-target="pw-new">
+                        <span class="material-symbols-outlined text-[18px]">visibility_off</span>
+                    </button>
+                </div>
+                <!-- Password strength indicator -->
+                <div class="mt-2 space-y-1">
+                    <div class="h-1.5 w-full bg-outline-variant/40 rounded-full overflow-hidden">
+                        <div id="pw-strength-bar" class="h-full rounded-full transition-all duration-300 w-0"></div>
+                    </div>
+                    <p id="pw-strength-text" class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant"></p>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">Konfirmasi Password Baru</label>
+                <div class="relative">
+                    <input type="password" id="pw-confirm" class="w-full bg-surface-container-low border border-outline-variant rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-primary pr-10" placeholder="Ulangi password baru" required />
+                    <button type="button" class="toggle-pw-visibility absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface" data-target="pw-confirm">
+                        <span class="material-symbols-outlined text-[18px]">visibility_off</span>
+                    </button>
+                </div>
+                <p id="pw-match-text" class="text-[10px] font-bold mt-1 hidden"></p>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="flex items-center justify-end gap-3 pt-4 border-t border-outline-variant">
+                <button type="button" class="px-5 py-2.5 rounded-xl border border-outline-variant text-on-surface font-bold text-xs hover:bg-surface-container transition-colors close-modal-btn" data-modal="change-password-modal">
+                    Batal
+                </button>
+                <button type="submit" id="pw-save-btn" class="px-6 py-2.5 rounded-xl bg-primary text-white font-bold text-xs hover:bg-[#4338CA] transition-all shadow-md shadow-primary/20 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                    <span class="material-symbols-outlined text-sm">lock</span>
+                    Ubah Password
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+</div>
+
+<!-- === [TAG MODAL: Rincian Kapasitas Penyimpanan (storage-modal)] === -->
+<!-- Penjelasan: Modal dialog yang merinci tipe file yang tersimpan (PDF, Gambar OCR, Dokumen Office) -->
+<!-- Storage Breakdown Modal -->
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-on-background/50 backdrop-blur-sm p-4 hidden" id="storage-modal">
+    <div class="relative bg-surface dark:bg-inverse-surface rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-outline-variant animate-in fade-in zoom-in duration-200">
+        <div class="flex items-center justify-between px-lg py-md border-b border-outline-variant bg-surface-container-lowest">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-primary text-2xl">pie_chart</span>
+                <div>
+                    <h3 class="font-title-md text-title-md font-bold text-on-surface">Rincian Penyimpanan</h3>
+                    <p class="font-label-md text-xs text-on-surface-variant">Penggunaan kuota akun Anda</p>
+                </div>
+            </div>
+            <button class="p-2 hover:bg-surface-container-highest rounded-full transition-colors close-modal-btn" data-modal="storage-modal">
+                <span class="material-symbols-outlined text-on-surface-variant">close</span>
+            </button>
+        </div>
+        <div class="p-lg space-y-4">
+            <div class="flex justify-between items-center p-3 bg-surface-container-low rounded-xl border border-outline-variant/60">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-red-500 text-lg">picture_as_pdf</span>
+                    <span class="text-xs font-bold text-on-surface">Dokumen PDF</span>
+                </div>
+                <span class="text-xs font-mono font-bold text-on-surface">Digital & Scans</span>
+            </div>
+            <div class="flex justify-between items-center p-3 bg-surface-container-low rounded-xl border border-outline-variant/60">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-blue-500 text-lg">image</span>
+                    <span class="text-xs font-bold text-on-surface">Gambar & OCR</span>
+                </div>
+                <span class="text-xs font-mono font-bold text-on-surface">PNG, JPG, WebP</span>
+            </div>
+            <div class="flex justify-between items-center p-3 bg-surface-container-low rounded-xl border border-outline-variant/60">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-orange-500 text-lg">description</span>
+                    <span class="text-xs font-bold text-on-surface">Office & Teks</span>
+                </div>
+                <span class="text-xs font-mono font-bold text-on-surface">Word, Excel, Text</span>
+            </div>
+        </div>
+        <div class="p-md border-t border-outline-variant bg-surface-container-lowest flex justify-end">
+            <button type="button" class="px-4 py-2 rounded-xl bg-primary text-white font-bold text-xs hover:bg-[#4338CA] transition-all close-modal-btn" data-modal="storage-modal">
+                Selesai
+            </button>
+        </div>
+    </div>
+</div>

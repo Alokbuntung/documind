@@ -1,0 +1,90 @@
+<!-- === [TAG VIEW: Tampilan Pengaturan Sistem (settings_view.html)] === -->
+<!-- Penjelasan: Modul preferensi pengguna untuk mengatur tema visual (terang/gelap) serta memeriksa status operasional mesin Tesseract OCR, bahasa ekstraksi, OpenCV, dan Poppler -->
+<!-- Section Container: System Settings View -->
+<div id="settings-view" class="hidden space-y-lg">
+    <!-- Header -->
+    <div class="border-b border-outline-variant pb-md mb-lg">
+        <div class="flex items-center gap-sm mb-1">
+            <span class="material-symbols-outlined text-primary text-2xl">settings</span>
+            <h2 class="font-headline-lg text-headline-lg text-on-surface font-bold">Pengaturan Sistem</h2>
+        </div>
+        <p class="text-body-lg text-on-surface-variant">
+            Konfigurasi preferensi antarmuka pengguna dan status mesin DocuMind.
+        </p>
+    </div>
+
+    <div class="max-w-4xl space-y-8">
+        <!-- === [TAG KOMPONEN: Pengaturan Preferensi Tema Visual] === -->
+        <!-- Penjelasan: Pilihan tema tampilan antarmuka (mode terang vs mode gelap) yang disimpan secara lokal di browser -->
+        <!-- Section: General Preferences -->
+        <section class="space-y-4">
+            <div class="flex items-center gap-sm border-b border-outline-variant/60 pb-2">
+                <span class="material-symbols-outlined text-primary">tune</span>
+                <h3 class="font-title-md text-title-md font-bold text-on-surface">Preferensi Umum</h3>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-lg">
+                <div class="bg-surface border border-outline-variant rounded-2xl p-lg flex flex-col justify-between shadow-sm">
+                    <div>
+                        <h4 class="font-label-md text-label-md font-bold text-on-surface mb-1">Tema Visual</h4>
+                        <p class="text-xs text-on-surface-variant mb-4">Pilih palet tema antarmuka untuk DocuMind.</p>
+                    </div>
+                    <div class="flex gap-md">
+                        <button id="theme-btn-light" type="button" class="flex-1 py-2.5 px-3 rounded-xl border-2 border-primary bg-primary/5 text-primary font-bold text-xs flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined text-sm">light_mode</span> Terang
+                        </button>
+                        <button id="theme-btn-dark" type="button" class="flex-1 py-2.5 px-3 rounded-xl border border-outline-variant text-on-surface-variant font-bold text-xs flex items-center justify-center gap-2 hover:bg-surface-container-low">
+                            <span class="material-symbols-outlined text-sm">dark_mode</span> Gelap
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- === [TAG KOMPONEN: Status Konfigurasi Mesin OCR] === -->
+        <!-- Penjelasan: Tabel status kesiapan mesin Tesseract OCR v5, dukungan dwibahasa (Indonesia/Inggris), modul pra-pemrosesan OpenCV, dan utilitas Poppler PDF -->
+        <!-- Section: OCR Engine Configuration -->
+        <section class="space-y-4">
+            <div class="flex items-center gap-sm border-b border-outline-variant/60 pb-2">
+                <span class="material-symbols-outlined text-primary">visibility</span>
+                <h3 class="font-title-md text-title-md font-bold text-on-surface">Status Mesin OCR</h3>
+            </div>
+
+            <div class="bg-surface border border-outline-variant rounded-2xl p-lg space-y-6 shadow-sm">
+                <!-- Tesseract Language Status Table -->
+                <div class="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+                    <table class="w-full text-left text-sm">
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
+                                <td class="py-3 px-4 font-medium text-slate-500 dark:text-slate-400 w-1/3">Mesin OCR Aktif</td>
+                                <td class="py-3 px-4 text-slate-800 dark:text-slate-200 font-semibold flex items-center gap-2">
+                                    <span>Tesseract OCR v5</span>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">Aktif</span>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
+                                <td class="py-3 px-4 font-medium text-slate-500 dark:text-slate-400">Mode Bahasa</td>
+                                <td class="py-3 px-4 text-slate-800 dark:text-slate-200">
+                                    <span class="font-medium">Dwibahasa (IND + ENG)</span>
+                                    <p class="text-xs text-slate-400 mt-0.5">Mendukung ekstraksi otomatis dokumen Bahasa Indonesia dan Inggris.</p>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
+                                <td class="py-3 px-4 font-medium text-slate-500 dark:text-slate-400">Pra-Pemrosesan Gambar</td>
+                                <td class="py-3 px-4 text-slate-800 dark:text-slate-200">
+                                    <span class="font-medium">OpenCV (CLAHE &amp; Otsu Binarization)</span>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
+                                <td class="py-3 px-4 font-medium text-slate-500 dark:text-slate-400">Dukungan PDF Scan</td>
+                                <td class="py-3 px-4 text-slate-800 dark:text-slate-200">
+                                    <span class="font-medium">Poppler Utility (pdftoppm)</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>

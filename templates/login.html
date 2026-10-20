@@ -1,0 +1,306 @@
+<!-- === [TAG TEMPLATE: Halaman Masuk Pengguna (login.html)] === -->
+<!-- Penjelasan: Antarmuka autentikasi pengguna ke ruang kerja DocuMind melalui form email & password atau form permohonan reset kata sandi -->
+{% extends "base.html" %}
+
+{% block title %}DocuMind - Login{% endblock %}
+
+{% block extra_css %}
+        .liquid-bg {
+            background: linear-gradient(135deg, rgba(231, 238, 255, 1) 0%, rgba(249, 249, 255, 1) 50%, rgba(216, 227, 251, 1) 100%);
+            background-size: 400% 400%;
+            animation: gradient-flow 15s ease infinite;
+        }
+
+        @keyframes gradient-flow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.78);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 10px 40px -10px rgba(53, 37, 205, 0.08), 0 20px 25px -5px rgba(0, 0, 0, 0.04);
+        }
+{% endblock %}
+
+{% block body_class %}flex items-center justify-center liquid-bg relative overflow-hidden p-4{% endblock %}
+
+{% block content %}
+<!-- Abstract Shapes for ambient depth -->
+<div class="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
+    <div class="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-surface-container-high/60 blur-[100px]"></div>
+    <div class="absolute top-[60%] -right-[10%] w-[40%] h-[40%] rounded-full bg-primary-fixed-dim/30 blur-[120px]"></div>
+</div>
+
+<!-- Back to Home Link -->
+<a href="{{ url_for('main.welcome') }}" class="absolute top-6 left-6 z-20 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/70 hover:bg-white text-on-surface-variant hover:text-primary font-semibold text-sm backdrop-blur-md shadow-xs border border-white/60 transition-all hover:-translate-y-0.5">
+    <span class="material-symbols-outlined text-lg">arrow_back</span>
+    <span>Home</span>
+</a>
+
+<!-- Login Container -->
+<div class="relative z-10 w-full max-w-[440px] my-8">
+
+    <!-- Logo Area -->
+    <div class="text-center mb-8 flex flex-col items-center">
+        <a href="{{ url_for('main.welcome') }}" class="inline-flex items-center gap-3 mb-2 group">
+            <img src="{{ url_for('static', filename='images/documind_logo.png') }}" alt="DocuMind Logo" class="h-12 w-12 object-contain rounded-full shadow-md border border-outline-variant/30 bg-white group-hover:scale-105 transition-transform duration-300">
+            <span class="text-3xl md:text-4xl font-black text-primary tracking-tight">DocuMind</span>
+        </a>
+        <p class="text-body-md font-body-md text-on-surface-variant font-medium">Structured Intelligence for your Documents</p>
+    </div>
+
+    <!-- Glassmorphism Card -->
+    <div class="glass-card rounded-[24px] p-6 sm:p-8 md:p-9 transition-all">
+        <div class="mb-6">
+            <h2 class="text-2xl font-bold text-on-surface" id="auth-title">Masuk</h2>
+            <p class="text-body-md font-body-md text-on-surface-variant mt-1" id="auth-subtitle">Selamat datang kembali di ruang kerja Anda.</p>
+        </div>
+
+        <!-- Alert Box for Error Message -->
+        <div id="login-alert" class="hidden my-4 p-3.5 rounded-xl text-xs font-semibold bg-red-100 text-red-700 border border-red-200"></div>
+
+        <!-- === [TAG FORMULIR: Autentikasi Masuk Akun (Login Form)] === -->
+        <!-- Penjelasan: Input email dan kata sandi dengan verifikasi AJAX via /api/auth/login, proteksi CSRF, dan indikator status pengiriman -->
+        <form action="javascript:void(0);" method="POST" class="space-y-5" id="auth-form">
+            <!-- Email Input -->
+            <div>
+                <label class="block text-label-md font-label-md font-semibold text-on-surface-variant mb-1.5" for="email">Alamat Email</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-outline pointer-events-none">
+                        <span class="material-symbols-outlined text-[20px]">mail</span>
+                    </span>
+                    <input class="block w-full pl-11 pr-4 py-2.5 bg-surface-container-lowest border border-outline-variant/80 rounded-xl text-body-md font-body-md text-on-surface placeholder:text-outline/70 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm font-medium" id="email" name="email" placeholder="nama@perusahaan.com" required="" type="email"/>
+                </div>
+            </div>
+
+            <!-- Password Input -->
+            <div>
+                <div class="flex items-center justify-between mb-1.5">
+                    <label class="block text-label-md font-label-md font-semibold text-on-surface-variant" for="password">Kata Sandi</label>
+                    <a href="#" class="text-xs font-bold text-primary hover:underline" id="show-reset-form-link">Lupa Password?</a>
+                </div>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-outline pointer-events-none">
+                        <span class="material-symbols-outlined text-[20px]">lock</span>
+                    </span>
+                    <input class="block w-full pl-11 pr-11 py-2.5 bg-surface-container-lowest border border-outline-variant/80 rounded-xl text-body-md font-body-md text-on-surface placeholder:text-outline/70 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm font-medium" id="password" name="password" placeholder="••••••••" required="" type="password"/>
+                    <button class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-outline hover:text-on-surface transition-colors focus:outline-none cursor-pointer" id="toggle-password-btn" type="button">
+                        <span class="material-symbols-outlined text-[20px]" id="password-eye-icon">visibility_off</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sign In Button -->
+            <button class="w-full flex justify-center items-center py-3 px-4 rounded-xl shadow-lg shadow-primary/25 text-sm font-bold text-on-primary bg-primary hover:bg-[#4338CA] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all hover:-translate-y-0.5 active:scale-[0.98] cursor-pointer" type="submit" id="submit-auth-btn">
+                Masuk
+            </button>
+        </form>
+
+        <!-- === [TAG FORMULIR: Permintaan Reset Kata Sandi (Forgot Password Form)] === -->
+        <!-- Penjelasan: Formulir permintaan token pemulihan kata sandi yang dikirimkan ke alamat email terdaftar -->
+        <!-- Reset Password Form (Hidden by default) -->
+        <form action="javascript:void(0);" method="POST" class="space-y-4 hidden" id="reset-password-form">
+            <!-- Email Field -->
+            <div>
+                <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2" for="reset-email">Alamat Email</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <span class="material-symbols-outlined text-outline text-[20px]">mail</span>
+                    </div>
+                    <input class="block w-full pl-11 pr-4 py-2.5 bg-surface-container-lowest border border-outline-variant/80 rounded-xl text-body-md font-body-md text-on-surface placeholder:text-outline/70 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm font-medium" id="reset-email" name="email" placeholder="nama@perusahaan.com" required="" type="email"/>
+                </div>
+            </div>
+
+            <!-- Reset Button -->
+            <button class="w-full flex justify-center items-center py-3 px-4 rounded-xl shadow-lg shadow-primary/25 text-sm font-bold text-on-primary bg-primary hover:bg-[#4338CA] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all hover:-translate-y-0.5 active:scale-[0.98] cursor-pointer" type="submit" id="submit-reset-btn">
+                Kirim Link Reset
+            </button>
+
+            <!-- Back to Login Link -->
+            <div class="text-center mt-2">
+                <a href="#" class="text-xs font-bold text-on-surface-variant hover:text-primary transition-colors" id="show-login-form-link">Kembali ke Login</a>
+            </div>
+        </form>
+
+    </div>
+
+    <!-- Link to Register -->
+    <div class="mt-6 text-center" id="register-link-container">
+        <p class="text-body-md font-body-md text-on-surface-variant">
+            Belum punya akun? 
+            <a href="{{ url_for('main.register') }}" class="font-bold text-primary hover:text-surface-tint transition-colors ml-1">Daftar</a>
+        </p>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- === [TAG SKRIP: Logika AJAX Autentikasi & Reset Password] === -->
+<!-- Penjelasan: Penanganan event submit form masuk, permohonan reset password, toggle visibilitas kata sandi, dan tampilan notifikasi alert -->
+<script>
+    // Password visibility toggle logic
+    const passwordInput = document.getElementById('password');
+    const togglePasswordBtn = document.getElementById('toggle-password-btn');
+    const eyeIcon = document.getElementById('password-eye-icon');
+
+    if (togglePasswordBtn && passwordInput && eyeIcon) {
+        togglePasswordBtn.addEventListener('click', () => {
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.textContent = 'visibility';
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.textContent = 'visibility_off';
+            }
+        });
+    }
+
+    // Handle AJAX Login Verification
+    const loginForm = document.getElementById('auth-form');
+    const loginAlert = document.getElementById('login-alert');
+    const submitBtn = document.getElementById('submit-auth-btn');
+
+    if (loginForm) {
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+
+            if (!email || !password) {
+                showLoginAlert('Harap masukkan email dan password Anda.', 'error');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Memverifikasi...</span>
+            `;
+
+            try {
+                // Contoh penggunaan CSRF helper apiFetch (menggantikan fetch biasa)
+                const res = await apiFetch('/api/auth/login', {
+                    method: 'POST',
+                    // headers: { 'Content-Type': 'application/json' }, // Tidak perlu lagi karena ditangani apiFetch
+                    body: JSON.stringify({ email: email, password: password })
+                });
+
+                const data = await res.json();
+
+                if (res.ok && data.status === 'success') {
+                    showLoginAlert('Login berhasil! Mengarahkan ke Dashboard...', 'success');
+                    setTimeout(() => {
+                        window.location.href = "{{ url_for('main.dashboard') }}";
+                    }, 500);
+                } else {
+                    showLoginAlert(data.message || 'Login gagal. Periksa email atau password Anda.', 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Masuk';
+                }
+            } catch (err) {
+                console.error(err);
+                showLoginAlert('Gagal terhubung ke server.', 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Masuk';
+            }
+        });
+    }
+
+    // Toggle between Login and Reset Password forms
+    const showResetFormLink = document.getElementById('show-reset-form-link');
+    const showLoginFormLink = document.getElementById('show-login-form-link');
+    const resetForm = document.getElementById('reset-password-form');
+    const authTitle = document.getElementById('auth-title');
+    const authSubtitle = document.getElementById('auth-subtitle');
+    const registerLinkContainer = document.getElementById('register-link-container');
+
+    if (showResetFormLink && showLoginFormLink && loginForm && resetForm) {
+        showResetFormLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            loginForm.classList.add('hidden');
+            resetForm.classList.remove('hidden');
+            authTitle.textContent = 'Lupa Password';
+            authSubtitle.textContent = 'Reset password Anda dengan memasukkan email terdaftar.';
+            if (registerLinkContainer) registerLinkContainer.classList.add('hidden');
+            if (loginAlert) loginAlert.classList.add('hidden');
+        });
+
+        showLoginFormLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            resetForm.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+            authTitle.textContent = 'Masuk';
+            authSubtitle.textContent = 'Selamat datang kembali di ruang kerja Anda.';
+            if (registerLinkContainer) registerLinkContainer.classList.remove('hidden');
+            if (loginAlert) loginAlert.classList.add('hidden');
+        });
+    }
+
+    // Handle AJAX Forgot Password Request
+    const submitResetBtn = document.getElementById('submit-reset-btn');
+    if (resetForm) {
+        resetForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('reset-email').value.trim();
+
+            if (!email) {
+                showLoginAlert('Harap isi alamat email terdaftar.', 'error');
+                return;
+            }
+
+            submitResetBtn.disabled = true;
+            submitResetBtn.innerHTML = `
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Mengirim Link...</span>
+            `;
+
+            try {
+                const res = await apiFetch('/api/auth/forgot-password', {
+                    method: 'POST',
+                    body: JSON.stringify({ email: email })
+                });
+
+                const data = await res.json();
+
+                if (res.ok && data.status === 'success') {
+                    showLoginAlert(data.message, 'success');
+                    resetForm.reset();
+                } else {
+                    showLoginAlert(data.message || 'Gagal mengirim email reset.', 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                showLoginAlert('Terjadi kesalahan jaringan.', 'error');
+            } finally {
+                submitResetBtn.disabled = false;
+                submitResetBtn.textContent = 'Kirim Link Reset';
+            }
+        });
+    }
+
+
+    function showLoginAlert(msg, type) {
+        if (!loginAlert) return;
+        loginAlert.classList.remove('hidden', 'bg-red-100', 'text-red-700', 'border-red-200', 'bg-emerald-100', 'text-emerald-700', 'border-emerald-200');
+        if (type === 'error') {
+            loginAlert.classList.add('bg-red-100', 'text-red-700', 'border', 'border-red-200');
+        } else {
+            loginAlert.classList.add('bg-emerald-100', 'text-emerald-700', 'border', 'border-emerald-200');
+        }
+        loginAlert.textContent = msg;
+    }
+</script>
+{% endblock %}

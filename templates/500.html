@@ -1,0 +1,16 @@
+<!-- === [TAG TEMPLATE: Halaman Galat 500 / Internal Server Error (500.html)] === -->
+<!-- Penjelasan: Halaman tanggap darurat respons HTTP 500 jika terjadi kegagalan sistem internal atau pengecualian (unhandled exception) pada backend -->
+{% extends "base.html" %}
+
+{% block title %}Kesalahan Server - DocuMind{% endblock %}
+
+{% block body_class %}bg-gray-50 flex items-center justify-center text-gray-800{% endblock %}
+
+{% block content %}
+    <div class="text-center p-8 bg-white rounded-2xl shadow-xl max-w-md w-full">
+        <h1 class="text-6xl font-black text-red-500 mb-4">500</h1>
+        <h2 class="text-2xl font-bold mb-2">Kesalahan Internal Server</h2>
+        <p class="text-gray-500 mb-6">Maaf, terjadi masalah di server kami. Silakan coba beberapa saat lagi.</p>
+        <a href="/" class="bg-indigo-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-indigo-700 transition">Kembali ke Beranda</a>
+    </div>
+{% endblock %}

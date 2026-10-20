@@ -1,0 +1,94 @@
+<!-- === [TAG KOMPONEN: Bilah Samping Navigasi (sidebar.html)] === -->
+<!-- Penjelasan: Menu navigasi vertikal tetap untuk beralih antar tampilan (Dasbor, Semua Dokumen, PDF, Office, Web, Gambar, Antrean, Pengaturan) dan widget penyimpanan -->
+<!-- Shell: SideNavBar Component -->
+<aside id="main-sidebar" class="hidden md:flex flex-col h-full py-md bg-surface-container-low dark:bg-inverse-surface w-[280px] fixed left-0 top-16 shadow-sm z-40 border-r border-outline-variant/30">
+    <div class="px-lg mb-md">
+        <div class="flex items-center gap-md p-md bg-surface-container-highest/50 rounded-xl cursor-pointer hover:bg-surface-container-highest transition-colors" id="sidebar-brand-btn">
+            <img src="{{ url_for('static', filename='images/documind_logo.png') }}" alt="DocuMind Logo" class="w-10 h-10 object-contain rounded-lg shadow-sm border border-outline-variant/40 bg-white">
+            <div>
+                <h3 class="font-title-md text-title-md font-black text-primary leading-none tracking-tight">DocuMind</h3>
+                <p class="font-label-md text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mt-1">OCR Cerdas</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- === [TAG MENU: Tautan Rute Menu SPA] === -->
+    <!-- Penjelasan: Menggunakan hash URL (#dashboard, #all-docs, dll.) yang diproses secara reaktif oleh NavigationManager di JavaScript -->
+    <!-- Navigation List -->
+    <nav class="flex-1 overflow-y-auto px-md space-y-1 custom-scrollbar" id="sidebar-nav">
+        <!-- 📊 Dashboard -->
+        <a class="flex items-center gap-md text-on-surface-variant dark:text-outline-variant px-4 py-3 hover:bg-surface-container-highest dark:hover:bg-surface-variant rounded-xl transition-all font-label-md text-label-md sidebar-link active"
+           data-view="dashboard" data-type="all" href="#dashboard">
+            <span class="material-symbols-outlined text-[22px]">dashboard</span>
+            <span class="font-semibold">Dasbor</span>
+        </a>
+
+        <!-- 📁 All Files -->
+        <a class="flex items-center gap-md text-on-surface-variant dark:text-outline-variant px-4 py-3 hover:bg-surface-container-highest dark:hover:bg-surface-variant rounded-xl transition-all font-label-md text-label-md sidebar-link"
+           data-view="all-docs" data-type="all" href="#all-docs">
+            <span class="material-symbols-outlined text-[22px]">folder_open</span>
+            <span class="font-medium">Semua Dokumen</span>
+        </a>
+
+        <!-- 📄 PDF Documents -->
+        <a class="flex items-center gap-md text-on-surface-variant dark:text-outline-variant px-4 py-3 hover:bg-surface-container-highest dark:hover:bg-surface-variant rounded-xl transition-all font-label-md text-label-md sidebar-link"
+           data-view="all-docs" data-type="pdf" href="#pdf">
+            <span class="material-symbols-outlined text-[22px]">picture_as_pdf</span>
+            <span class="font-medium">Dokumen PDF</span>
+        </a>
+
+        <!-- 📊 Office & Sheets -->
+        <a class="flex items-center gap-md text-on-surface-variant dark:text-outline-variant px-4 py-3 hover:bg-surface-container-highest dark:hover:bg-surface-variant rounded-xl transition-all font-label-md text-label-md sidebar-link"
+           data-view="all-docs" data-type="office" href="#office">
+            <span class="material-symbols-outlined text-[22px]">table_chart</span>
+            <span class="font-medium">Office & Sheets</span>
+        </a>
+
+        <!-- 🌐 Web & Text -->
+        <a class="flex items-center gap-md text-on-surface-variant dark:text-outline-variant px-4 py-3 hover:bg-surface-container-highest dark:hover:bg-surface-variant rounded-xl transition-all font-label-md text-label-md sidebar-link"
+           data-view="all-docs" data-type="web" href="#web">
+            <span class="material-symbols-outlined text-[22px]">language</span>
+            <span class="font-medium">Web & Teks</span>
+        </a>
+
+        <!-- 🖼️ Images & OCR -->
+        <a class="flex items-center gap-md text-on-surface-variant dark:text-outline-variant px-4 py-3 hover:bg-surface-container-highest dark:hover:bg-surface-variant rounded-xl transition-all font-label-md text-label-md sidebar-link"
+           data-view="all-docs" data-type="image" href="#image">
+            <span class="material-symbols-outlined text-[22px]">image</span>
+            <span class="font-medium">Gambar & OCR</span>
+        </a>
+
+        <!-- ⏳ Processing Queue -->
+        <a class="flex items-center gap-md text-on-surface-variant dark:text-outline-variant px-4 py-3 hover:bg-surface-container-highest dark:hover:bg-surface-variant rounded-xl transition-all font-label-md text-label-md sidebar-link"
+           data-view="queue" href="#queue">
+            <span class="material-symbols-outlined text-[22px]">pending_actions</span>
+            <span class="font-medium">Antrean Proses</span>
+            <span class="ml-auto bg-primary/10 text-primary text-[10px] font-bold px-2 py-0.5 rounded-full" id="sidebar-queue-badge">0</span>
+        </a>
+
+        <!-- ⚙️ System Settings -->
+        <a class="flex items-center gap-md text-on-surface-variant dark:text-outline-variant px-4 py-3 hover:bg-surface-container-highest dark:hover:bg-surface-variant rounded-xl transition-all font-label-md text-label-md sidebar-link"
+           data-view="settings" href="#settings">
+            <span class="material-symbols-outlined text-[22px]">settings</span>
+            <span class="font-medium">Pengaturan Sistem</span>
+        </a>
+    </nav>
+
+    <!-- === [TAG PENYIMPANAN: Indikator Kuota Memori Pengguna] === -->
+    <!-- Penjelasan: Menampilkan progress bar kapasitas penyimpanan yang terpakai vs batas maksimal 5 GB -->
+    <!-- Storage Usage Footer -->
+    <div class="px-lg py-md mt-auto border-t border-outline-variant/30">
+        <div class="p-md bg-surface-container/60 rounded-xl cursor-pointer hover:bg-surface-container-high transition-colors" id="btn-storage-info" title="Lihat Detail Penyimpanan">
+            <div class="flex justify-between items-center text-label-md font-bold text-on-surface mb-2">
+                <span class="text-[11px] uppercase tracking-wider text-on-surface-variant">Penyimpanan</span>
+                <span class="text-xs font-mono-md text-primary" id="sidebar-storage-percent">{{ stats.percentage|default(0) }}%</span>
+            </div>
+            <div class="h-2 w-full bg-outline-variant/50 rounded-full overflow-hidden mb-1">
+                <div class="h-full bg-primary rounded-full transition-all duration-500" id="sidebar-storage-bar" style="width: {{ stats.percentage|default(0) }}%;"></div>
+            </div>
+            <p class="text-[11px] text-on-surface-variant font-mono-md" id="sidebar-storage-text">
+                {{ stats.used_mb|default('0.0') }} MB / {{ stats.max_gb|default(5) }} GB Digunakan
+            </p>
+        </div>
+    </div>
+</aside>

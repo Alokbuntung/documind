@@ -1,0 +1,261 @@
+/* === [TAG STIL: Lembar Gaya Kustom DocuMind (style.css)] === */
+/* Penjelasan: Berkas CSS kustom yang mengatur efek visual Material Symbols, animasi pemindaian, sorotan teks hasil OCR, kustomisasi bilah geser (scrollbar), dan tema gelap global. */
+
+/* Custom Styles for DocuMind Dashboard & Document Quick View */
+
+.material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    vertical-align: middle;
+}
+
+@keyframes pulse-soft {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.animate-pulse-soft {
+    animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.ocr-highlight {
+    background-color: #FEF08A;
+    color: #854D0E;
+    border-radius: 4px;
+    padding: 1px 4px;
+    font-weight: 700;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #E2E8F0;
+    border-radius: 10px;
+}
+
+.scanned-receipt-effect {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transform: rotate(-0.5deg);
+}
+
+.text-glow {
+    text-shadow: 0 0 8px rgba(79, 70, 229, 0.2);
+}
+
+/* === [TAG KOMPONEN: Efek Kaca & Mikro-interaksi (Glassmorphism & Cards)] === */
+/* Penjelasan: Aturan styling efek kaca (backdrop blur) dan bayangan elevasi saat kartu di-hover. */
+/* Stitch Design Tokens & Micro-interactions */
+.glass-card {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+    box-shadow: 0 10px 25px -5px rgba(53, 37, 205, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+}
+
+.settings-card {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.settings-card:hover {
+    border-color: #3525cd;
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.05), 0px 10px 15px -3px rgba(0, 0, 0, 0.08);
+}
+
+/* === [TAG KOMPONEN: Status Tautan Bilah Sisi (Sidebar Active & Hover)] === */
+/* Penjelasan: Animasi transisi pergeseran tautan, indikator aktif border kiri warna indigo, dan varian tema gelap. */
+/* Sidebar Active & Hover States */
+.sidebar-link {
+    position: relative;
+    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    user-select: none;
+}
+
+.sidebar-link:hover {
+    transform: translateX(4px);
+}
+
+.sidebar-link:active {
+    transform: scale(0.97);
+}
+
+.sidebar-link.active {
+    background-color: rgba(53, 37, 205, 0.1) !important;
+    color: #3525cd !important;
+    border-left: 4px solid #3525cd;
+    font-weight: 700;
+    box-shadow: 0 2px 10px -2px rgba(53, 37, 205, 0.15);
+    transform: translateX(4px);
+}
+
+html.dark .sidebar-link.active {
+    background-color: rgba(99, 102, 241, 0.18) !important;
+    color: #818cf8 !important;
+    border-left-color: #818cf8;
+}
+
+.sidebar-link.active .material-symbols-outlined {
+    font-variation-settings: 'FILL' 1;
+    color: #3525cd;
+}
+
+html.dark .sidebar-link.active .material-symbols-outlined {
+    color: #818cf8 !important;
+}
+
+/* === [TAG ANIMASI: Transisi Tampilan & Efek Shimmer Skeleton] === */
+/* Penjelasan: Keyframes animasi masuknya tampilan halaman (viewFadeInScale), animasi baris tabel dokumen, dan efek shimmer loading placeholder. */
+/* Smooth Page & View Transitions */
+@keyframes viewFadeInScale {
+    0% {
+        opacity: 0;
+        transform: translateY(10px) scale(0.995);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.animate-view-transition {
+    animation: viewFadeInScale 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Table rows staggered entry */
+@keyframes rowFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.doc-row-animated {
+    animation: rowFadeIn 0.22s ease-out forwards;
+}
+
+/* Loading Skeleton Shimmer */
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.skeleton-shimmer {
+    background: linear-gradient(90deg, #f0f3ff 25%, #e7eeff 37%, #f0f3ff 63%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Dark Theme Global & Component Overrides
+   ────────────────────────────────────────────────────────────────────────── */
+/* === [TAG TEMA: Penyesuaian Global Mode Gelap (Dark Theme Overrides)] === */
+/* Penjelasan: Override warna latar belakang gelap (#0b1329), teks terang, garis batas, baris tabel, formulir input, dan sorotan OCR untuk mode malam. */
+html.dark body {
+    background-color: #0b1329 !important;
+    color: #f1f5f9 !important;
+}
+
+html.dark main {
+    background-color: #0b1329 !important;
+}
+
+html.dark header {
+    background-color: #111c38 !important;
+    border-color: #1e293b !important;
+}
+
+html.dark aside {
+    background-color: #111c38 !important;
+    border-color: #1e293b !important;
+}
+
+html.dark .bg-surface,
+html.dark .bg-surface-bright,
+html.dark .bg-surface-container-lowest,
+html.dark .bg-surface-container-low,
+html.dark .bg-surface-container,
+html.dark .bg-surface-container-high,
+html.dark .bg-surface-container-highest {
+    background-color: #162244 !important;
+    color: #f1f5f9 !important;
+}
+
+html.dark .border-outline-variant,
+html.dark .border-outline {
+    border-color: #2a3a66 !important;
+}
+
+html.dark .text-on-surface {
+    color: #f8fafc !important;
+}
+
+html.dark .text-on-surface-variant {
+    color: #94a3b8 !important;
+}
+
+html.dark table thead tr {
+    background-color: #111c38 !important;
+    color: #94a3b8 !important;
+}
+
+html.dark table tbody tr {
+    border-color: #1e293b !important;
+}
+
+html.dark table tbody tr:hover {
+    background-color: #1e2d54 !important;
+}
+
+html.dark input[type="text"],
+html.dark select,
+html.dark textarea {
+    background-color: #162244 !important;
+    color: #f8fafc !important;
+    border-color: #2a3a66 !important;
+}
+
+html.dark .glass-card {
+    background: rgba(22, 34, 68, 0.85);
+    border-color: rgba(42, 58, 102, 0.8);
+}
+
+html.dark .sidebar-link:hover {
+    background-color: rgba(99, 102, 241, 0.15);
+    color: #818cf8 !important;
+}
+
+html.dark .sidebar-link.active {
+    background-color: rgba(99, 102, 241, 0.2);
+    color: #a5b4fc !important;
+    border-left-color: #6366f1;
+}
+
+html.dark .sidebar-link.active .material-symbols-outlined {
+    color: #a5b4fc;
+}
+
+html.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #2a3a66;
+}
+
+html.dark .skeleton-shimmer {
+    background: linear-gradient(90deg, #162244 25%, #2a3a66 37%, #162244 63%);
+}
+
+html.dark .ocr-highlight {
+    background-color: #b45309;
+    color: #fef3c7;
+}
+

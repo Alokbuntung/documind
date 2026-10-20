@@ -1,0 +1,434 @@
+<!-- === [TAG TEMPLATE: Dasbor Utama Aplikasi (dashboard.html)] === -->
+<!-- Penjelasan: Halaman ruang kerja utama pengguna yang menggabungkan dropzone unggah, tabel indeks berkas, kartu metrik statistik, modal pratinjau OCR, dan modul navigasi AJAX -->
+{% extends "base.html" %}
+
+{% block title %}DocuMind Dashboard | Intelligent OCR{% endblock %}
+
+{% block body_class %}selection:bg-primary-container selection:text-on-primary-container{% endblock %}
+
+{% block content %}
+    <!-- === [TAG HEADER: Navigasi Atas & Bilah Pencarian Utama] === -->
+    <!-- Penjelasan: Logo aplikasi, bilah pencarian instan (full-text search), badge total dokumen terindeks, dan menu dropdown profil pengguna -->
+    <!-- Shell: TopNavBar -->
+    <header
+        class="bg-surface dark:bg-on-background flex justify-between items-center w-full px-lg h-16 border-b border-outline-variant dark:border-outline fixed top-0 z-50">
+        <!-- Left: Brand Logo & Navigation -->
+        <div class="flex items-center gap-md min-w-[180px]">
+            <button id="mobile-menu-btn" class="md:hidden material-symbols-outlined p-2 text-on-surface-variant hover:bg-surface-container rounded-lg cursor-pointer mr-2">menu</button>
+            <a href="{{ url_for('main.welcome') }}"
+                class="font-headline-lg text-headline-lg font-bold text-primary dark:text-inverse-primary tracking-tight cursor-pointer flex items-center gap-2"
+                id="header-logo-btn">
+                <img src="{{ url_for('static', filename='images/documind_logo.png') }}" alt="DocuMind Logo" class="h-8 w-auto rounded-lg object-contain">
+                <span>DocuMind</span>
+            </a>
+            <div class="hidden md:flex items-center ml-lg space-x-lg">
+                <nav class="flex items-center gap-md">
+                    <a class="text-on-surface-variant hover:text-primary font-medium font-body-md text-body-md px-2 py-1 rounded-lg transition-colors"
+                        href="{{ url_for('main.welcome') }}">Beranda</a>
+                    <a class="text-primary dark:text-inverse-primary font-bold font-body-md text-body-md px-2 py-1 bg-primary/10 rounded-lg"
+                        href="{{ url_for('main.dashboard') }}">Dasbor</a>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Center: Prominent Proportional Search Bar (Google Drive / Spotlight Style) -->
+        <div class="flex-1 max-w-2xl mx-4 lg:mx-8 hidden sm:block">
+            <div class="relative w-full">
+                <span
+                    class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg cursor-pointer"
+                    id="header-search-icon">search</span>
+                <input type="text" id="header-search-input" placeholder="Cari nama file atau kata kunci di dalam dokumen (Full-Text Retrieval)..."
+                    class="w-full pl-10 pr-10 py-2 bg-surface-container-low border border-outline-variant rounded-full text-body-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-on-surface shadow-sm" />
+                <button id="search-clear-btn"
+                    class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface text-sm p-1 rounded-full hover:bg-surface-container transition-colors">
+                    <span class="material-symbols-outlined text-sm">close</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Right: Actions & User Profile -->
+        <div class="flex items-center gap-md min-w-[180px] justify-end">
+            <span class="hidden xl:block text-label-md font-label-md text-on-surface-variant"
+                id="doc-count-badge">Dokumen Terindeks: {{ documents|length if documents is defined else 0 }}</span>
+            <!-- Profile Avatar & Dropdown Menu -->
+            <div class="relative">
+                <button type="button" class="w-9 h-9 rounded-full overflow-hidden border border-outline-variant bg-primary/10 flex items-center justify-center font-bold text-primary cursor-pointer hover:opacity-90 transition-all shadow-sm"
+                    id="btn-user-profile" title="Profil Pengguna">
+                    <span id="header-avatar-initials" class="{{ 'hidden' if user and user.avatar_url else '' }}">{{ user.full_name[:2].upper() if user and user.full_name else 'DM' }}</span>
+                    <img id="header-avatar-img" src="{{ user.avatar_url if user and user.avatar_url else '' }}" alt="Profile Avatar" class="w-full h-full object-cover {{ '' if user and user.avatar_url else 'hidden' }}" />
+                </button>
+
+                <!-- Profile Dropdown -->
+                <div id="profile-dropdown-menu" class="hidden absolute right-0 mt-2 w-64 bg-surface dark:bg-inverse-surface rounded-2xl shadow-2xl border border-outline-variant py-2 z-50 animate-in fade-in duration-150">
+                    <div class="px-4 py-3 border-b border-outline-variant/60">
+                        <p class="font-bold text-sm text-on-surface truncate" id="dropdown-user-name">{{ user.full_name if user and user.full_name else 'DocuMind User' }}</p>
+                        <p class="text-xs text-on-surface-variant truncate" id="dropdown-user-email">{{ user.email if user and user.email else 'user@documind.ai' }}</p>
+                    </div>
+
+                    <div class="py-1">
+                        <button type="button" id="menu-item-settings" class="w-full px-4 py-2.5 text-left text-sm font-semibold text-on-surface hover:bg-surface-container-high transition-colors flex items-center gap-3">
+                            <span class="material-symbols-outlined text-primary text-lg">settings</span>
+                            <span>Atur Profile</span>
+                        </button>
+                        <button type="button" id="menu-item-switch" class="w-full px-4 py-2.5 text-left text-sm font-semibold text-on-surface hover:bg-surface-container-high transition-colors flex items-center gap-3">
+                            <span class="material-symbols-outlined text-secondary text-lg">swap_horiz</span>
+                            <span>Ganti Akun</span>
+                        </button>
+                    </div>
+
+                    <div class="border-t border-outline-variant/60 pt-1">
+                        <button type="button" id="menu-item-logout" class="w-full px-4 py-2.5 text-left text-sm font-semibold text-error hover:bg-error/10 transition-colors flex items-center gap-3">
+                            <span class="material-symbols-outlined text-error text-lg">logout</span>
+                            <span>Keluar dari Akun</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex pt-16 h-screen overflow-hidden">
+        <!-- Shell: SideNavBar -->
+        {% include 'components/sidebar.html' %}
+
+        <!-- Main Content Area -->
+        <main class="flex-1 md:ml-[280px] overflow-y-auto custom-scrollbar bg-surface-bright">
+            <div class="max-w-7xl mx-auto p-lg lg:p-xl space-y-lg">
+                <!-- Main Workspace View Container -->
+                <div id="dashboard-view" class="space-y-lg">
+                    <!-- === [TAG UNGGAH: Zona Dropzone Seret & Lepas Dokumen] === -->
+                    <!-- Penjelasan: Area interaktif untuk menarik atau memilih berkas dan folder utuh guna diekstraksi teksnya oleh OCR Engine -->
+                    <!-- Zone A: Dropzone Card -->
+                <section class="w-full">
+                    <div class="relative group">
+                        <div
+                            class="absolute -inset-1 bg-gradient-to-r from-primary to-secondary opacity-10 blur rounded-2xl group-hover:opacity-20 transition duration-1000">
+                        </div>
+                        <div class="relative bg-surface border-2 border-dashed border-outline-variant rounded-2xl p-xl flex flex-col items-center justify-center min-h-[320px] transition-all hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 cursor-pointer"
+                            id="dropzone">
+                            <!-- Hidden File Inputs -->
+                            <input type="file" id="file-input" class="hidden" multiple />
+                            <input type="file" id="folder-input" class="hidden" webkitdirectory directory multiple />
+
+                            <!-- Animated Cloud Icon Container -->
+                            <div class="w-24 h-24 mb-4 relative flex items-center justify-center">
+                                <div
+                                    class="absolute inset-0 bg-primary/5 rounded-full scale-125 blur-xl opacity-0 group-hover:opacity-100 transition-opacity">
+                                </div>
+                                <span class="material-symbols-outlined text-[64px] text-primary">cloud_upload</span>
+                            </div>
+
+                            <h2 class="font-headline-lg text-headline-lg text-on-surface mb-2 text-center">Tarik &amp;
+                                lepas file atau seluruh folder ke sini</h2>
+                            <p class="font-body-md text-body-md text-on-surface-variant mb-xl text-center">Mendukung PDF, Office, HTML, File Kode, Gambar &amp; Folder</p>
+
+                            <div class="flex flex-wrap items-center justify-center gap-3">
+                                <button
+                                    class="bg-primary text-white font-title-md text-title-md px-6 py-3 rounded-xl shadow-lg shadow-primary/20 hover:bg-[#4338CA] transition-all active:scale-95 flex items-center gap-2"
+                                    id="browse-btn" type="button">
+                                    <span class="material-symbols-outlined">add_circle</span>
+                                    Pilih File
+                                </button>
+                                <button
+                                    class="bg-surface-container-high border border-outline-variant text-on-surface font-title-md text-title-md px-6 py-3 rounded-xl hover:bg-surface-container-highest transition-all active:scale-95 flex items-center gap-2"
+                                    id="browse-folder-btn" type="button">
+                                    <span class="material-symbols-outlined text-primary">folder_open</span>
+                                    Pilih Folder
+                                </button>
+                            </div>
+
+                            <!-- Active Processing Bar Container (Hidden initially) -->
+                            <div class="mt-xl w-full max-w-lg bg-surface-container rounded-xl p-md border border-outline-variant animate-pulse-soft hidden"
+                                id="upload-progress-container">
+                                <div class="flex justify-between items-center mb-2">
+                                    <div class="flex items-center gap-md">
+                                        <span class="material-symbols-outlined text-primary animate-spin">sync</span>
+                                        <span class="font-label-md text-label-md text-on-surface font-semibold truncate"
+                                            id="upload-filename">Memproses file...</span>
+                                    </div>
+                                    <span class="font-mono-md text-mono-md text-primary font-bold"
+                                        id="upload-percent">0%</span>
+                                </div>
+                                <div class="h-2 w-full bg-outline-variant rounded-full overflow-hidden">
+                                    <div class="h-full bg-primary rounded-full transition-all duration-300"
+                                        id="upload-progress-bar" style="width: 0%"></div>
+                                </div>
+                                <p class="text-[10px] text-on-surface-variant mt-2 uppercase tracking-widest font-bold"
+                                    id="upload-status-text">Mengunggah file...</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- === [TAG TABEL: Zona Tabel Dokumen Terindeks & Filter] === -->
+                <!-- Penjelasan: Tabel data berkas hasil indeks pencarian, filter jenis berkas (PDF, Office, Web, Gambar), pemilihan checkbox, tombol hapus massal, dan navigasi paginasi -->
+                <!-- Zone B: Indexed Documents -->
+                <section class="bg-surface border border-outline-variant rounded-2xl shadow-sm overflow-hidden">
+                    <!-- Section Header -->
+                    <div
+                        class="p-lg border-b border-outline-variant flex flex-col md:flex-row md:items-center justify-between gap-md">
+                        <div>
+                            <h2 class="font-title-md text-title-md text-on-surface" id="table-section-title">Dokumen Terindeks</h2>
+                            <p class="font-label-md text-label-md text-on-surface-variant" id="table-section-subtitle">
+                                Kelola dan cari data yang telah diekstrak</p>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-md">
+                            <!-- Filter Group Pills -->
+                            <div class="flex items-center bg-surface-container-low border border-outline-variant rounded-lg p-1"
+                                id="type-filter-group">
+                                <button
+                                    class="px-4 py-1.5 rounded-md text-label-md font-label-md bg-white shadow-sm text-primary filter-pill active"
+                                    data-filter="all">Semua</button>
+                                <button
+                                    class="px-4 py-1.5 rounded-md text-label-md font-label-md text-on-surface-variant hover:text-on-surface transition-colors filter-pill"
+                                    data-filter="pdf">PDF</button>
+                                <button
+                                    class="px-4 py-1.5 rounded-md text-label-md font-label-md text-on-surface-variant hover:text-on-surface transition-colors filter-pill"
+                                    data-filter="office">Office</button>
+                                <button
+                                    class="px-4 py-1.5 rounded-md text-label-md font-label-md text-on-surface-variant hover:text-on-surface transition-colors filter-pill"
+                                    data-filter="web">Web/HTML</button>
+                                <button
+                                    class="px-4 py-1.5 rounded-md text-label-md font-label-md text-on-surface-variant hover:text-on-surface transition-colors filter-pill"
+                                    data-filter="image">Gambar/OCR</button>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button id="btn-bulk-delete" class="hidden flex items-center gap-1.5 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-semibold shadow-sm transition-all mr-2">
+                                    <span class="material-symbols-outlined text-sm">delete_sweep</span>
+                                    <span>Hapus (<span id="selected-count">0</span>)</span>
+                                </button>
+                                <button
+                                    class="material-symbols-outlined p-2 border border-outline-variant rounded-lg hover:bg-surface-container transition-colors cursor-pointer"
+                                    id="view-toggle-grid" title="Tampilan Grid">grid_view</button>
+                                <button
+                                    class="material-symbols-outlined p-2 bg-primary/10 text-primary border border-primary/20 rounded-lg cursor-pointer"
+                                    id="view-toggle-list" title="Tampilan Daftar">list</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Table Content -->
+                    <div class="overflow-x-auto" id="table-container">
+                        <table class="w-full text-left border-collapse" id="documents-table">
+                            <thead>
+                                <tr
+                                    class="bg-surface-container-low text-label-md font-label-md text-on-surface-variant uppercase tracking-wider">
+                                    <th class="px-lg py-md w-10"><input type="checkbox" id="select-all-docs" class="rounded border-outline-variant text-primary focus:ring-primary/20 w-5 h-5 cursor-pointer"></th>
+                                    <th class="px-lg py-md font-semibold">Info File</th>
+                                    <th class="px-lg py-md font-semibold whitespace-nowrap">Jenis Badge</th>
+                                    <th class="px-lg py-md font-semibold w-1/3">Cuplikan OCR</th>
+                                    <th class="px-lg py-md font-semibold">Tanggal Ditambahkan</th>
+                                    <th class="px-lg py-md font-semibold text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-outline-variant" id="documents-table-body">
+                                {% if documents is defined and documents %}
+                                {% for doc in documents %}
+                                <tr class="hover:bg-surface-container-lowest transition-colors group doc-row cursor-pointer"
+                                    data-type="{{ doc.file_type }}" data-category="{{ doc.category }}"
+                                    data-doc-id="{{ doc.id }}" data-title="{{ doc.filename }}">
+                                    <td class="px-lg py-lg">
+                                        <input type="checkbox" class="doc-checkbox rounded border-outline-variant text-primary focus:ring-primary/20 w-5 h-5 cursor-pointer" data-id="{{ doc.id }}">
+                                    </td>
+                                    <td class="px-lg py-lg">
+                                        <div class="flex items-center gap-md">
+                                            <div
+                                                class="w-10 h-10 rounded-lg {% if doc.file_type == 'pdf' %}bg-blue-50 text-blue-600 border border-blue-100{% elif doc.file_type == 'office' %}bg-orange-50 text-orange-600 border border-orange-100{% else %}bg-red-50 text-red-600 border border-red-100{% endif %} flex items-center justify-center">
+                                                <span class="material-symbols-outlined">{% if doc.file_type == 'pdf'
+                                                    %}picture_as_pdf{% elif doc.file_type == 'office' %}description{%
+                                                    else %}image{% endif %}</span>
+                                            </div>
+                                            <div>
+                                                <div
+                                                    class="font-body-md text-body-md text-on-surface font-semibold group-hover:text-primary transition-colors doc-name">
+                                                    {{ doc.filename }}</div>
+                                                <div class="text-label-md text-on-surface-variant">{{ (doc.file_size /
+                                                    (1024 * 1024))|round(1) if doc.file_size else 1.0 }} MB</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-lg py-lg whitespace-nowrap">
+                                        <span
+                                            class="{% if doc.file_type == 'pdf' %}bg-primary/5 text-primary border-primary/10{% elif doc.file_type == 'office' %}bg-orange-50 text-orange-700 border-orange-100{% else %}bg-emerald-50 text-emerald-700 border-emerald-100{% endif %} inline-flex items-center whitespace-nowrap text-[10px] font-bold px-2.5 py-1 rounded-full border uppercase tracking-tighter">
+                                            {% if doc.file_type == 'pdf' %}DIGITAL / PDF{% elif doc.file_type ==
+                                            'office' %}DOCX / OFFICE{% else %}IMAGE / OCR{% endif %}
+                                        </span>
+                                    </td>
+                                    <td class="px-lg py-lg">
+                                        <div
+                                            class="font-mono-md text-mono-md text-on-surface-variant line-clamp-2 max-w-md doc-snippet">
+                                            {% if doc.snippet %}{{ doc.snippet|safe }}{% else %}...Text content
+                                             extracted and ready for indexing...{% endif %}
+                                        </div>
+                                    </td>
+                                    <td class="px-lg py-lg whitespace-nowrap">
+                                        <div class="text-body-md text-on-surface">{{ doc.uploaded_at.split(' ')[0] if
+                                            doc.uploaded_at else 'Just Now' }}</div>
+                                        <div class="text-label-md text-on-surface-variant">{{ doc.uploaded_at.split('
+                                            ')[1] if doc.uploaded_at and ' ' in doc.uploaded_at else 'Recently Added' }}
+                                        </div>
+                                    </td>
+                                    <td class="px-lg py-lg text-right">
+                                        <div class="flex items-center justify-end gap-1">
+                                            <button
+                                                class="material-symbols-outlined p-2 text-on-surface-variant hover:bg-primary/10 hover:text-primary rounded-lg transition-all btn-view-doc"
+                                                data-doc-id="{{ doc.id }}"
+                                                title="View Document">visibility</button>
+                                            <button
+                                                class="material-symbols-outlined p-2 text-on-surface-variant hover:bg-primary/10 hover:text-primary rounded-lg transition-all btn-download-doc"
+                                                data-doc-id="{{ doc.id }}"
+                                                title="Download">download</button>
+                                            <button
+                                                class="material-symbols-outlined p-2 text-on-surface-variant hover:bg-error/10 hover:text-error rounded-lg transition-all btn-delete-doc"
+                                                data-doc-id="{{ doc.id }}"
+                                                title="Delete">delete</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                {% else %}
+                                <tr>
+                                    <td colspan="5" class="py-16 text-center text-on-surface-variant">
+                                        <div class="flex flex-col items-center justify-center gap-3">
+                                            <span class="material-symbols-outlined text-4xl text-outline-variant">folder_open</span>
+                                            <p class="font-title-md text-title-md font-semibold text-on-surface">Belum ada dokumen</p>
+                                            <p class="font-body-md text-body-md text-on-surface-variant">Unggah dokumen atau gambar di dropzone atas untuk mulai mengekstrak teks.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endif %}
+
+                                <!-- Hidden Empty State Row -->
+                                <tr id="empty-state-row" class="hidden">
+                                    <td colspan="5" class="py-12 text-center text-on-surface-variant">
+                                        <div class="flex flex-col items-center justify-center gap-2">
+                                            <span
+                                                class="material-symbols-outlined text-4xl text-outline">search_off</span>
+                                            <p class="font-title-md text-title-md font-semibold text-on-surface">No
+                                                documents found matching your search</p>
+                                            <p class="font-body-md text-body-md text-on-surface-variant">Try clearing
+                                                filters or searching for different keywords.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Dynamic Card Grid View (Hidden by default) -->
+                    <div id="documents-grid" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-md p-lg">
+                    </div>
+
+
+                    <!-- Pagination Footer -->
+                    <div class="px-lg py-md border-t border-outline-variant flex items-center justify-between">
+                        <span class="text-label-md font-label-md text-on-surface-variant"
+                            id="table-pagination-info">Showing 1-3 of 3 documents</span>
+                        <div class="flex items-center gap-2">
+                            <button
+                                class="material-symbols-outlined p-2 text-on-surface-variant hover:bg-surface-container rounded-lg disabled:opacity-30 cursor-pointer"
+                                id="btn-page-prev">chevron_left</button>
+                            <div class="flex items-center px-2 gap-1" id="pagination-numbers">
+                                <span
+                                    class="px-3 py-1 bg-primary text-white rounded-md text-label-md font-label-md cursor-pointer">1</span>
+                            </div>
+                            <button
+                                class="material-symbols-outlined p-2 text-on-surface-variant hover:bg-surface-container rounded-lg disabled:opacity-30 cursor-pointer"
+                                id="btn-page-next">chevron_right</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- === [TAG STATISTIK: Kartu Metrik Dasbor (Bento Grid)] === -->
+                <!-- Penjelasan: Tiga kartu indikator utama: jumlah dokumen terindeks, persentase akurasi OCR rata-rata, dan pemakaian kuota penyimpanan pengguna -->
+                <!-- System Stats Bento Grid -->
+                <section class="grid grid-cols-1 md:grid-cols-3 gap-lg">
+                    <div class="bg-surface-container-low border border-outline-variant p-lg rounded-2xl cursor-pointer hover:shadow-md transition-shadow"
+                        id="card-stat-speed" title="Lihat Detail Dokumen">
+                        <div class="flex justify-between items-start mb-md">
+                            <span
+                                class="material-symbols-outlined text-primary bg-primary/10 p-2 rounded-lg">description</span>
+                            <span class="text-emerald-600 text-label-md font-bold">Total Dokumen</span>
+                        </div>
+                        <h4 class="text-on-surface-variant text-label-md font-label-md mb-1">Total File Diindeks</h4>
+                        <p class="text-headline-lg font-headline-lg text-on-surface"><span id="live-stat-docs">{{ stats.total_docs if stats else 0 }}</span> Dokumen</p>
+                    </div>
+                    <div class="bg-surface-container-low border border-outline-variant p-lg rounded-2xl cursor-pointer hover:shadow-md transition-shadow"
+                        id="card-stat-accuracy" title="Lihat Akurasi OCR">
+                        <div class="flex justify-between items-start mb-md">
+                            <span
+                                class="material-symbols-outlined text-primary bg-primary/10 p-2 rounded-lg">verified</span>
+                            <span class="text-emerald-600 text-label-md font-bold">Tingkat Akurasi</span>
+                        </div>
+                        <h4 class="text-on-surface-variant text-label-md font-label-md mb-1">Akurasi Ekstraksi OCR</h4>
+                        <p class="text-headline-lg font-headline-lg text-on-surface"><span id="live-stat-acc">{{ stats.accuracy if stats else 0 }}</span>%</p>
+                    </div>
+                    <div class="bg-primary text-white p-lg rounded-2xl relative overflow-hidden group">
+                        <div
+                            class="absolute right-[-20px] bottom-[-20px] text-white/10 group-hover:scale-110 transition-transform duration-700">
+                            <span class="material-symbols-outlined text-[120px]"
+                                style="font-variation-settings: 'FILL' 1;">cloud_done</span>
+                        </div>
+                        <div class="relative z-10">
+                            <h4 class="text-white/80 text-label-md font-label-md mb-1">Penyimpanan Terpakai</h4>
+                            <p class="text-headline-lg font-headline-lg text-white"><span id="live-stat-storage">{{ stats.used_mb if stats else 0 }}</span> MB</p>
+                            <p class="text-xs text-white/80 mt-1">Kapasitas maksimal 5 GB</p>
+                        </div>
+                    </div>
+                </section>
+                </div>
+
+                <!-- === [TAG PARTIAL: Tampilan Tampilan Dinamis SPA] === -->
+                <!-- Penjelasan: Komponen partial yang di-render secara bergantian sesuai rute hash URL (#all-docs, #queue, #settings) -->
+                <!-- Include All Documents View Partial -->
+                {% include 'components/all_docs_view.html' %}
+
+                <!-- Include Processing Queue View Partial -->
+                {% include 'components/queue_view.html' %}
+
+                <!-- Include System Settings View Partial -->
+                {% include 'components/settings_view.html' %}
+            </div>
+        </main>
+    </div>
+
+    <!-- === [TAG MODAL: Dialog Modal Dasbor & Pratinjau] === -->
+    <!-- Penjelasan: Komponen modal info pengguna, modal pratinjau split-screen teks OCR, dan dialog konfirmasi penghapusan permanen -->
+    <!-- Include Dynamic Modals -->
+    {% include 'components/_dashboard_modals.html' %}
+
+    <!-- Include Preview Modal Component -->
+    {% include 'components/_preview_modal.html' %}
+
+    <!-- Custom Delete Modal -->
+    <div class="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 hidden" id="delete-modal-overlay">
+        <div class="bg-surface rounded-2xl shadow-2xl w-full max-w-sm flex flex-col overflow-hidden border border-red-500/30" id="delete-modal-dialog">
+            <div class="p-6 flex flex-col items-center text-center">
+                <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                    <span class="material-symbols-outlined text-4xl text-red-600">delete_forever</span>
+                </div>
+                <h3 class="text-xl font-bold text-on-surface mb-2">Hapus Dokumen?</h3>
+                <p class="text-sm text-on-surface-variant mb-6">Apakah Anda yakin ingin menghapus <br/><strong id="delete-modal-filename" class="text-on-surface text-red-500 truncate max-w-[200px] inline-block"></strong><br/>secara permanen? Tindakan ini tidak dapat diurungkan.</p>
+                <div class="flex items-center gap-3 w-full">
+                    <button class="flex-1 py-2.5 bg-surface-container-high hover:bg-surface-container-highest border border-outline-variant rounded-xl font-bold text-on-surface transition-all" id="cancel-delete-btn">
+                        Batal
+                    </button>
+                    <button class="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold shadow-md shadow-red-500/20 transition-all" id="confirm-delete-btn">
+                        Hapus Permanen
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block extra_js %}
+    <!-- === [TAG SCRIPT: Pustaka Modul JavaScript Dasbor] === -->
+    <!-- Penjelasan: Script pembantu (utils), uploader berkas, pencarian realtime, navigasi SPA, dan event handler utama -->
+    <script src="{{ url_for('static', filename='js/utils.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/upload.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/search.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/navigation.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,132 @@
+<!-- === [TAG KOMPONEN: Modal Pratinjau Dokumen & Editor OCR (_preview_modal.html)] === -->
+<!-- Penjelasan: Modal layar ganda (split-screen): panel kiri memvisualisasikan file fisik dengan toolbar zoom, panel kanan menyajikan teks hasil ekstraksi OCR yang dapat diedit langsung, disalin, atau diekspor ke file .txt -->
+<!-- Modal Overlay (Hidden by default) -->
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 md:p-6 hidden" id="document-modal">
+    <!-- Modal Content -->
+    <div class="relative bg-surface dark:bg-inverse-surface rounded-2xl shadow-2xl w-full max-w-5xl h-[85vh] max-h-[85vh] flex flex-col overflow-hidden border border-outline-variant animate-in fade-in zoom-in duration-200">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between px-lg py-md border-b border-outline-variant bg-surface-container-lowest">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center border border-primary/20" id="modal-doc-icon-container">
+                    <span class="material-symbols-outlined text-2xl" id="modal-doc-icon">description</span>
+                </div>
+                <div>
+                    <h2 class="font-title-md text-title-md text-on-surface font-bold truncate max-w-md sm:max-w-xl" id="modal-doc-title">Document Preview</h2>
+                    <p class="font-label-md text-label-md text-on-surface-variant" id="modal-doc-subtitle">Processed recently • DocuMind Archive</p>
+                </div>
+            </div>
+            <button class="p-2 hover:bg-surface-container-highest rounded-full transition-colors cursor-pointer text-on-surface-variant hover:text-on-surface" id="close-modal-btn" title="Tutup Modal">
+                <span class="material-symbols-outlined text-2xl">close</span>
+            </button>
+        </div>
+
+        <!-- Modal Body (Split Screen) -->
+        <div class="flex flex-col md:flex-row flex-1 overflow-hidden overflow-x-hidden w-full max-w-full">
+            <!-- === [TAG PANEL KIRI: Pratinjau Berkas Fisik & Toolbar Zoom] === -->
+            <!-- Penjelasan: Menampilkan gambar, PDF via iframe, atau kartu dokumen Office beserta kontrol perbesaran gambar -->
+            <!-- Left Half: Real Document / File Preview -->
+            <div class="w-full md:w-1/2 bg-surface-container-low p-4 sm:p-6 flex items-center justify-center overflow-hidden border-r border-outline-variant relative" id="modal-preview-left-pane">
+                
+                <!-- Floating Zoom Toolbar -->
+                <div class="absolute top-4 right-4 z-10 flex flex-col bg-surface/90 backdrop-blur shadow-sm border border-outline-variant rounded-lg overflow-hidden">
+                    <button class="p-2 hover:bg-surface-container-highest transition-colors text-on-surface" id="btn-zoom-in" title="Zoom In (+)">
+                        <span class="material-symbols-outlined text-sm">zoom_in</span>
+                    </button>
+                    <button class="p-2 hover:bg-surface-container-highest transition-colors text-on-surface border-y border-outline-variant/50" id="btn-zoom-reset" title="Reset (1:1)">
+                        <span class="material-symbols-outlined text-sm">center_focus_strong</span>
+                    </button>
+                    <button class="p-2 hover:bg-surface-container-highest transition-colors text-on-surface" id="btn-zoom-out" title="Zoom Out (-)">
+                        <span class="material-symbols-outlined text-sm">zoom_out</span>
+                    </button>
+                </div>
+
+                <div class="w-full h-full flex flex-col items-center justify-center" id="modal-receipt-preview">
+                    <!-- Dynamic Document Preview (Image / PDF iframe / Code / Office Card) -->
+                    <div class="flex flex-col items-center justify-center text-center p-8 gap-3 text-on-surface-variant">
+                        <span class="material-symbols-outlined text-5xl text-primary/60 animate-spin">progress_activity</span>
+                        <p class="text-sm font-medium">Memuat preview dokumen...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- === [TAG PANEL KANAN: Editor Teks OCR & Metadata Dokumen] === -->
+            <!-- Penjelasan: Menampilkan tingkat akurasi OCR, tombol unduh berkas asli / TXT, penyalin teks, editor contenteditable, dan metadata berkas -->
+            <!-- Right Half: OCR Extracted Text & Content -->
+            <div class="w-full md:w-1/2 bg-surface p-4 sm:p-6 flex flex-col gap-4 overflow-y-auto overflow-x-hidden">
+                <!-- Header Actions -->
+                <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-2 px-3 py-1.5 bg-secondary/10 border border-secondary/20 rounded-full" id="modal-ocr-badge">
+                            <span class="material-symbols-outlined text-secondary text-sm" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                            <span class="text-secondary font-label-md text-xs font-bold uppercase tracking-wider" id="modal-ocr-confidence">OCR Confidence: 98%</span>
+                        </div>
+                        <span id="modal-word-count" class="text-[11px] text-on-surface-variant font-medium opacity-0">0 Perkataan • 0 Aksara</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <a id="modal-download-link" href="#" class="flex items-center gap-1.5 px-3 py-1.5 bg-surface border border-outline-variant text-on-surface hover:bg-surface-container rounded-xl transition-all text-xs font-semibold shadow-sm" title="Download original file">
+                            <span class="material-symbols-outlined text-sm">download</span>
+                            <span>Download Asli</span>
+                        </a>
+                        <button class="flex items-center gap-1.5 px-3 py-1.5 bg-surface border border-outline-variant text-on-surface hover:bg-surface-container rounded-xl transition-all text-xs font-semibold shadow-sm group cursor-pointer" id="btn-download-ocr" title="Export extracted text as .txt">
+                            <span class="material-symbols-outlined text-sm group-hover:text-secondary">description</span>
+                            <span>Unduh TXT</span>
+                        </button>
+                        <button class="flex items-center gap-1.5 px-3 py-1.5 bg-surface border border-outline-variant text-on-surface hover:bg-surface-container rounded-xl transition-all text-xs font-semibold shadow-sm group cursor-pointer" id="copy-btn" title="Copy extracted text">
+                            <span class="material-symbols-outlined text-sm group-hover:text-primary">content_copy</span>
+                            <span>Salin Teks</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Extracted Content Card -->
+                <div class="flex-1 bg-surface-container-lowest border border-outline-variant rounded-xl p-4 sm:p-5 flex flex-col gap-3 shadow-sm min-h-[280px]">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-title-md text-sm font-bold text-on-surface flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary text-lg">segment</span>
+                            Isi Teks &amp; Hasil Ekstraksi OCR
+                        </h3>
+                        <span class="font-mono-md text-[10px] text-on-surface-variant uppercase bg-surface-container px-2 py-0.5 rounded font-bold" id="modal-edit-status-badge">Indexed Text</span>
+                    </div>
+                    <div class="flex-1 bg-surface-container-low rounded-lg p-4 font-mono-md text-xs text-on-surface leading-relaxed whitespace-pre-wrap selection:bg-primary-container selection:text-on-primary-container overflow-y-auto max-h-[300px] border border-outline-variant/40" id="ocr-text-container">Memuat konten dokumen...</div>
+
+                    <!-- Universal Document Metadata Cards -->
+                    <div class="grid grid-cols-3 gap-2 pt-2">
+                        <div class="flex flex-col gap-0.5 p-2.5 bg-surface rounded-lg border border-outline-variant">
+                            <span class="text-[10px] font-bold text-on-surface-variant uppercase">Kategori</span>
+                            <span class="text-xs font-bold text-primary truncate" id="meta-merchant">General</span>
+                        </div>
+                        <div class="flex flex-col gap-0.5 p-2.5 bg-surface rounded-lg border border-outline-variant">
+                            <span class="text-[10px] font-bold text-on-surface-variant uppercase">Tanggal</span>
+                            <span class="text-xs font-bold text-on-surface truncate" id="meta-date">Hari ini</span>
+                        </div>
+                        <div class="flex flex-col gap-0.5 p-2.5 bg-primary/10 rounded-lg border border-primary/20">
+                            <span class="text-[10px] font-bold text-primary uppercase">Ukuran</span>
+                            <span class="text-xs font-black text-primary truncate" id="meta-total">0.0 KB</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Footer -->
+                <div class="flex items-center gap-3 w-full max-w-full">
+                    <button class="py-2.5 px-4 bg-surface border border-outline-variant text-on-surface rounded-xl text-sm font-bold hover:bg-surface-container transition-all cursor-pointer hidden" id="btn-cancel-edit">
+                        Batal
+                    </button>
+                    <button class="flex-1 py-2.5 px-5 bg-primary text-white rounded-xl text-sm font-bold hover:bg-[#4338CA] transition-all shadow-md shadow-primary/20 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer hidden" id="approve-file-btn">
+                        <span class="material-symbols-outlined text-lg">save</span>
+                        <span>Simpan Perubahan Teks</span>
+                    </button>
+                    <button class="py-2.5 px-5 flex-1 bg-surface border border-outline-variant text-on-surface rounded-xl text-sm font-bold hover:bg-surface-container transition-all cursor-pointer" id="edit-data-btn">
+                        Edit Teks
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- === [TAG TOAST: Komponen Notifikasi Melayang] === -->
+<!-- Toast Notification (Hidden by default) -->
+<div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-3 bg-inverse-surface text-inverse-on-surface px-6 py-3 rounded-full shadow-2xl opacity-0 transition-all duration-300 pointer-events-none translate-y-10" id="toast">
+    <span class="material-symbols-outlined text-secondary-fixed">check_circle</span>
+    <span class="font-label-md text-label-md font-medium" id="toast-message">Teks berhasil disalin ke clipboard</span>
+</div>

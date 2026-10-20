@@ -1,0 +1,123 @@
+<!-- === [TAG VIEW: Tampilan Antrean Pemrosesan OCR (queue_view.html)] === -->
+<!-- Penjelasan: Modul pemantauan waktu-nyata status antrean ekstraksi OCR dokumen latar belakang (background worker) beserta metrik analitik dan penanganan kegagalan -->
+<!-- Section Container: Processing Queue View -->
+<div id="queue-view" class="hidden space-y-lg">
+    <!-- === [TAG KOMPONEN: Header Pemantauan Antrean OCR] === -->
+    <!-- Penjelasan: Judul modul, deskripsi algoritma Tesseract v5, dan tombol ekspor riwayat log antrean -->
+    <!-- Page Header & Action Bar -->
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-md mb-lg">
+        <div>
+            <div class="flex items-center gap-sm mb-1">
+                <span class="material-symbols-outlined text-primary text-2xl">pending_actions</span>
+                <h2 class="font-headline-lg text-headline-lg text-on-surface font-bold">Pemrosesan OCR Latar Belakang</h2>
+            </div>
+            <p class="text-body-lg text-on-surface-variant max-w-2xl">
+                Pantau status ekstraksi OCR waktu-nyata di seluruh alur unggahan. Skor akurasi dihitung menggunakan kombinasi model Tesseract v5 &amp; Vision-L.
+            </p>
+        </div>
+        <div class="flex gap-sm">
+            <button id="btn-export-queue-logs" class="px-5 py-2.5 bg-surface border border-outline-variant text-on-surface font-bold rounded-xl flex items-center gap-sm hover:bg-surface-container transition-colors shadow-sm text-label-md">
+                <span class="material-symbols-outlined text-sm">download</span>
+                Ekspor Log
+            </button>
+        </div>
+    </div>
+
+    <!-- === [TAG KOMPONEN: Kartu Metrik Antrean (Stats Bento Grid)] === -->
+    <!-- Penjelasan: Indikator ringkasan performa: tugas berjalan, total arsip terindeks, persentase akurasi rata-rata OCR, dan jumlah tugas gagal -->
+    <!-- Stats Bento Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-lg">
+        <div class="glass-card p-lg rounded-2xl border border-outline-variant bg-white/80 shadow-sm">
+            <div class="flex items-center gap-sm text-primary mb-2">
+                <span class="material-symbols-outlined">memory</span>
+                <span class="font-bold text-label-md uppercase tracking-wider">Tugas Aktif</span>
+            </div>
+            <div class="text-3xl font-black text-on-surface" id="queue-stat-active">{{ metrics.active_tasks|default(0) }}</div>
+            <p class="text-xs text-on-surface-variant mt-1">Memproses OCR berjalan</p>
+        </div>
+
+        <div class="glass-card p-lg rounded-2xl border border-outline-variant bg-white/80 shadow-sm">
+            <div class="flex items-center gap-sm text-blue-600 mb-2">
+                <span class="material-symbols-outlined">folder</span>
+                <span class="font-bold text-label-md uppercase tracking-wider">Total Dokumen</span>
+            </div>
+            <div class="text-3xl font-black text-on-surface" id="queue-stat-total">{{ documents|length if documents is defined else 0 }}</div>
+            <p class="text-xs text-on-surface-variant mt-1">Dokumen yang telah diindeks</p>
+        </div>
+
+        <div class="glass-card p-lg rounded-2xl border border-outline-variant bg-white/80 shadow-sm">
+            <div class="flex items-center gap-sm text-amber-600 mb-2">
+                <span class="material-symbols-outlined">verified</span>
+                <span class="font-bold text-label-md uppercase tracking-wider">Tingkat Akurasi</span>
+            </div>
+            <div class="text-3xl font-black text-on-surface" id="queue-confidence-rate">{{ metrics.confidence_rate|default(0) }}<span class="text-lg">%</span></div>
+            <p class="text-xs text-on-surface-variant mt-1">Indeks akurasi rata-rata</p>
+        </div>
+
+        <div class="glass-card p-lg rounded-2xl border border-outline-variant bg-white/80 shadow-sm">
+            <div class="flex items-center gap-sm text-error mb-2">
+                <span class="material-symbols-outlined">report</span>
+                <span class="font-bold text-label-md uppercase tracking-wider">Gagal & Diulang</span>
+            </div>
+            <div class="text-3xl font-black text-on-surface" id="queue-failed-count">{{ '%02d' | format(metrics.failed_tasks_count|default(0)) }}</div>
+            <p class="text-xs text-on-surface-variant mt-1">Menunggu pengulangan otomatis</p>
+        </div>
+    </div>
+
+    <!-- === [TAG KOMPONEN: Tabel Umpan Antrean Waktu-Nyata (Live Queue Table Card)] === -->
+    <!-- Penjelasan: Tabel progres langsung dokumen dalam antrean dengan indikator live ping, nama file, sumber unggah, urutan antrean, dan status pemrosesan -->
+    <!-- Live Queue Table Card -->
+    <div class="bg-surface border border-outline-variant rounded-2xl shadow-sm overflow-hidden">
+        <div class="p-lg border-b border-outline-variant bg-surface-container-low flex justify-between items-center">
+            <div>
+                <h3 class="font-title-md text-title-md font-bold text-on-surface">Antrean Unggahan &amp; Ekstraksi Langsung</h3>
+                <p class="text-xs text-on-surface-variant">Umpan pemrosesan latar belakang waktu-nyata</p>
+            </div>
+            <div class="flex items-center gap-md">
+                <div class="flex items-center gap-xs px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-xs font-bold">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                    Umpan Langsung Aktif
+                </div>
+                <button id="btn-refresh-queue" class="text-primary font-bold text-xs hover:underline flex items-center gap-1">
+                    <span class="material-symbols-outlined text-sm">refresh</span> Segarkan
+                </button>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-surface-container-low text-on-surface-variant uppercase text-[11px] font-bold tracking-wider border-b border-outline-variant">
+                        <th class="px-lg py-4">Info File</th>
+                        <th class="px-lg py-4">Sumber Unggahan</th>
+                        <th class="px-lg py-4">Posisi Antrean</th>
+                        <th class="px-lg py-4">Mesin OCR</th>
+                        <th class="px-lg py-4 text-center">Akurasi</th>
+                        <th class="px-lg py-4 w-1/4">Progres &amp; Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-outline-variant" id="queue-table-body">
+                    <!-- Dynamic Queue items will be populated via JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- === [TAG KOMPONEN: Panel Penanganan Dokumen Gagal (Failed Retries Section)] === -->
+    <!-- Penjelasan: Daftar berkas yang gagal diekstraksi OCR disertai tombol pengulangan massal (retry all) -->
+    <!-- Failed Retries Section -->
+    <div class="bg-surface border border-outline-variant rounded-2xl p-lg shadow-sm">
+        <div class="flex items-center justify-between mb-md">
+            <div class="flex items-center gap-sm">
+                <span class="material-symbols-outlined text-error">warning</span>
+                <h3 class="font-title-md text-title-md font-bold text-on-surface">Gagal Ekstraksi OCR</h3>
+            </div>
+            <button id="btn-retry-all-failed" class="px-3 py-1.5 bg-error/10 text-error hover:bg-error/20 font-bold rounded-lg text-xs transition-colors">
+                Ulangi Semua yang Gagal
+            </button>
+        </div>
+        <div id="failed-retries-container" class="space-y-sm">
+            <!-- Dynamic failed retries list -->
+        </div>
+    </div>
+</div>

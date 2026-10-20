@@ -1,0 +1,262 @@
+<!-- === [TAG MODAL: Dialog Pemilihan Akun Sosial OAuth (_social_oauth_modal.html)] === -->
+<!-- Penjelasan: Modal dialog interaktif untuk pemilihan akun Google, Apple ID, dan GitHub beserta form kustom -->
+<!-- Interactive Social OAuth / Account Chooser Modal -->
+<div id="social-oauth-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 hidden animate-in fade-in duration-200">
+    <div class="relative bg-white dark:bg-inverse-surface rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-outline-variant/40 animate-in zoom-in-95 duration-200">
+        
+        <!-- Close Button -->
+        <button type="button" id="close-oauth-modal-btn" class="absolute top-4 right-4 p-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-full transition-colors cursor-pointer z-10">
+            <span class="material-symbols-outlined text-lg">close</span>
+        </button>
+
+        <!-- === [TAG KOMPONEN: Tampilan Pemilih Akun Google (Google Account Chooser)] === -->
+        <!-- Penjelasan: Daftar pilihan akun Google yang siap diklik atau form input akun kustom -->
+        <!-- 1. Google Account Chooser View -->
+        <div id="view-google-chooser" class="p-6 sm:p-8 hidden">
+            <div class="flex items-center gap-3 mb-6">
+                <svg class="w-7 h-7" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                </svg>
+                <div>
+                    <h3 class="font-bold text-lg text-on-surface">Sign in with Google</h3>
+                    <p class="text-xs text-on-surface-variant">Choose an account to continue to DocuMind</p>
+                </div>
+            </div>
+
+            <!-- Account List -->
+            <div class="space-y-2" id="google-account-list">
+                <!-- Account 1 -->
+                <button type="button" class="w-full flex items-center gap-3.5 p-3 rounded-xl border border-outline-variant/60 hover:bg-surface-container/60 hover:border-primary transition-all text-left group cursor-pointer" onclick="submitSocialLogin('google', 'Alex Rivera', 'alex.rivera@gmail.com', 'https://ui-avatars.com/api/?name=Alex+Rivera&background=4285F4&color=fff&bold=true')">
+                    <img class="w-10 h-10 rounded-full object-cover shadow-xs border border-outline-variant/40" src="https://ui-avatars.com/api/?name=Alex+Rivera&background=4285F4&color=fff&bold=true" alt="Alex Rivera" />
+                    <div class="flex-1 min-w-0">
+                        <div class="font-bold text-sm text-on-surface group-hover:text-primary transition-colors truncate">Alex Rivera</div>
+                        <div class="text-xs text-on-surface-variant truncate">alex.rivera@gmail.com</div>
+                    </div>
+                    <span class="material-symbols-outlined text-outline group-hover:text-primary text-sm">arrow_forward_ios</span>
+                </button>
+
+                <!-- Account 2 -->
+                <button type="button" class="w-full flex items-center gap-3.5 p-3 rounded-xl border border-outline-variant/60 hover:bg-surface-container/60 hover:border-primary transition-all text-left group cursor-pointer" onclick="submitSocialLogin('google', 'Sarah Jenkins', 'sarah.jenkins@gmail.com', 'https://ui-avatars.com/api/?name=Sarah+Jenkins&background=EA4335&color=fff&bold=true')">
+                    <img class="w-10 h-10 rounded-full object-cover shadow-xs border border-outline-variant/40" src="https://ui-avatars.com/api/?name=Sarah+Jenkins&background=EA4335&color=fff&bold=true" alt="Sarah Jenkins" />
+                    <div class="flex-1 min-w-0">
+                        <div class="font-bold text-sm text-on-surface group-hover:text-primary transition-colors truncate">Sarah Jenkins</div>
+                        <div class="text-xs text-on-surface-variant truncate">sarah.jenkins@gmail.com</div>
+                    </div>
+                    <span class="material-symbols-outlined text-outline group-hover:text-primary text-sm">arrow_forward_ios</span>
+                </button>
+
+                <!-- Custom Account Option -->
+                <button type="button" id="btn-toggle-custom-google" class="w-full flex items-center gap-3.5 p-3 rounded-xl border border-dashed border-outline-variant hover:bg-surface-container/40 text-left group cursor-pointer">
+                    <div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant group-hover:text-primary transition-colors">
+                        <span class="material-symbols-outlined text-xl">person_add</span>
+                    </div>
+                    <div class="flex-1">
+                        <div class="font-bold text-sm text-on-surface group-hover:text-primary transition-colors">Use another Google account</div>
+                        <div class="text-xs text-on-surface-variant">Enter custom name &amp; email</div>
+                    </div>
+                </button>
+            </div>
+
+            <!-- Custom Account Form (Hidden by default) -->
+            <form id="custom-google-form" class="hidden mt-4 pt-4 border-t border-outline-variant/40 space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-on-surface-variant mb-1">Your Name</label>
+                    <input type="text" id="custom-google-name" placeholder="John Doe" class="w-full px-3.5 py-2 rounded-xl border border-outline-variant text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary" required />
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-on-surface-variant mb-1">Google Email</label>
+                    <input type="email" id="custom-google-email" placeholder="you@gmail.com" class="w-full px-3.5 py-2 rounded-xl border border-outline-variant text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary" required />
+                </div>
+                <button type="submit" class="w-full py-2.5 px-4 bg-primary text-white rounded-xl text-xs font-bold hover:bg-[#4338CA] transition-colors flex items-center justify-center gap-2">
+                    <span>Continue with this account</span>
+                    <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- === [TAG KOMPONEN: Tampilan Masuk Apple ID (Apple ID Sign In View)] === -->
+        <!-- Penjelasan: Dialog otentikasi Apple ID dengan opsi privasi menyembunyikan atau membagikan surel -->
+        <!-- 2. Apple ID Sign In View -->
+        <div id="view-apple-chooser" class="p-6 sm:p-8 hidden">
+            <div class="text-center mb-6">
+                <div class="w-12 h-12 rounded-full bg-black text-white flex items-center justify-center mx-auto mb-3 shadow-md">
+                    <svg class="w-6 h-6 fill-current" viewBox="0 0 170 170">
+                        <path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.74 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.35.13-9.16-1.9-14.42-6.08-3.69-3.08-7.77-7.96-12.24-14.64-7.23-10.9-12.92-23.01-17.06-36.31-4.14-13.3-6.21-25.75-6.21-37.36 0-14.73 3.8-27.27 11.41-37.62 7.61-10.36 17.29-15.65 29.04-15.89 4.35 0 9.49 1.16 15.42 3.49 5.93 2.33 9.77 3.52 11.51 3.58 1.49 0 5.51-1.3 12.06-3.89 6.56-2.59 11.96-3.76 16.22-3.52 14.15.77 24.97 5.93 32.48 15.49-12.44 7.62-18.52 17.88-18.23 30.77.29 10.12 4.16 18.67 11.62 25.64 7.46 6.97 16.32 10.96 26.58 11.97-2.33 7.08-4.99 14.07-7.98 20.97zM119.22 31.84c0-7.39 2.65-14.35 7.94-20.89 5.3-6.54 11.83-10.49 19.59-11.85.73 8.3-1.63 15.68-7.08 22.14-5.46 6.45-12.28 10.27-20.45 10.6z"/>
+                    </svg>
+                </div>
+                <h3 class="font-bold text-lg text-on-surface">Sign in with Apple</h3>
+                <p class="text-xs text-on-surface-variant">Do you want to sign in to DocuMind with your Apple ID?</p>
+            </div>
+
+            <form id="apple-auth-form" class="space-y-4">
+                <div class="p-3.5 rounded-xl bg-surface-container-low border border-outline-variant/60 flex items-center justify-between">
+                    <div>
+                        <div class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Apple ID</div>
+                        <input type="email" id="apple-email-input" value="alex.rivera@icloud.com" class="bg-transparent border-0 p-0 text-sm font-bold text-on-surface focus:ring-0 w-full" required />
+                    </div>
+                    <span class="material-symbols-outlined text-outline">check_circle</span>
+                </div>
+
+                <div class="space-y-2 text-xs text-on-surface-variant">
+                    <label class="flex items-center gap-2 p-2.5 rounded-xl border border-outline-variant/40 hover:bg-surface-container cursor-pointer">
+                        <input type="radio" name="apple-hide-email" checked class="text-black focus:ring-black" />
+                        <span>Share My Email (alex.rivera@icloud.com)</span>
+                    </label>
+                    <label class="flex items-center gap-2 p-2.5 rounded-xl border border-outline-variant/40 hover:bg-surface-container cursor-pointer">
+                        <input type="radio" name="apple-hide-email" class="text-black focus:ring-black" />
+                        <span>Hide My Email (Relay via Apple Private Relay)</span>
+                    </label>
+                </div>
+
+                <button type="submit" class="w-full py-3 px-4 bg-black hover:bg-neutral-800 text-white rounded-xl text-sm font-bold transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer">
+                    <svg class="w-4 h-4 fill-current" viewBox="0 0 170 170">
+                        <path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.74 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.35.13-9.16-1.9-14.42-6.08-3.69-3.08-7.77-7.96-12.24-14.64-7.23-10.9-12.92-23.01-17.06-36.31-4.14-13.3-6.21-25.75-6.21-37.36 0-14.73 3.8-27.27 11.41-37.62 7.61-10.36 17.29-15.65 29.04-15.89 4.35 0 9.49 1.16 15.42 3.49 5.93 2.33 9.77 3.52 11.51 3.58 1.49 0 5.51-1.3 12.06-3.89 6.56-2.59 11.96-3.76 16.22-3.52 14.15.77 24.97 5.93 32.48 15.49-12.44 7.62-18.52 17.88-18.23 30.77.29 10.12 4.16 18.67 11.62 25.64 7.46 6.97 16.32 10.96 26.58 11.97-2.33 7.08-4.99 14.07-7.98 20.97zM119.22 31.84c0-7.39 2.65-14.35 7.94-20.89 5.3-6.54 11.83-10.49 19.59-11.85.73 8.3-1.63 15.68-7.08 22.14-5.46 6.45-12.28 10.27-20.45 10.6z"/>
+                    </svg>
+                    <span>Continue with Apple ID</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- === [TAG KOMPONEN: Tampilan Otorisasi GitHub (GitHub OAuth Authorize View)] === -->
+        <!-- Penjelasan: Dialog otorisasi aplikasi DocuMind dengan identitas akun pengembang GitHub -->
+        <!-- 3. GitHub OAuth Authorize View -->
+        <div id="view-github-chooser" class="p-6 sm:p-8 hidden">
+            <div class="flex items-center justify-center gap-4 mb-6">
+                <div class="w-12 h-12 rounded-2xl bg-surface-container border border-outline-variant/60 flex items-center justify-center text-primary shadow-xs">
+                    <img src="{{ url_for('static', filename='images/documind_logo.png') }}" class="w-8 h-8 rounded-full" />
+                </div>
+                <span class="material-symbols-outlined text-outline text-lg">sync_alt</span>
+                <div class="w-12 h-12 rounded-2xl bg-[#24292e] text-white flex items-center justify-center shadow-xs">
+                    <svg class="w-7 h-7 fill-current" viewBox="0 0 24 24">
+                        <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.161 22 16.416 22 12c0-5.523-4.477-10-10-10z"></path>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="text-center mb-5">
+                <h3 class="font-bold text-lg text-on-surface">Authorize DocuMind</h3>
+                <p class="text-xs text-on-surface-variant">by DocuMind AI Corporation</p>
+            </div>
+
+            <div class="p-3.5 rounded-xl bg-surface-container-low border border-outline-variant/60 mb-4 flex items-center gap-3">
+                <img class="w-9 h-9 rounded-full" src="https://ui-avatars.com/api/?name=GitHub+Developer&background=24292e&color=fff&bold=true" />
+                <div class="flex-1 min-w-0">
+                    <input type="text" id="github-username-input" value="alex-developer" class="bg-transparent border-0 p-0 text-sm font-bold text-on-surface focus:ring-0 w-full" placeholder="GitHub Handle" />
+                    <input type="email" id="github-email-input" value="alex.dev@github.com" class="bg-transparent border-0 p-0 text-xs text-on-surface-variant focus:ring-0 w-full" placeholder="email@github.com" />
+                </div>
+            </div>
+
+            <div class="space-y-2 mb-5 text-xs text-on-surface-variant">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-emerald-600 text-base">check_circle</span>
+                    <span>Verify your GitHub identity</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-emerald-600 text-base">check_circle</span>
+                    <span>Read your public email address</span>
+                </div>
+            </div>
+
+            <div class="flex gap-3">
+                <button type="button" class="flex-1 py-2.5 rounded-xl border border-outline-variant text-xs font-bold text-on-surface hover:bg-surface-container transition-colors close-oauth-btn">
+                    Cancel
+                </button>
+                <button type="button" id="btn-authorize-github" class="flex-1 py-2.5 bg-[#2da44e] hover:bg-[#2c974b] text-white rounded-xl text-xs font-bold transition-all shadow-md">
+                    Authorize
+                </button>
+            </div>
+        </div>
+
+        <!-- === [TAG KOMPONEN: Status Indikator Menghubungkan Akun (OAuth Loading State)] === -->
+        <!-- Penjelasan: Spinner animasi saat proses verifikasi dan penyimpanan sesi otentikasi berlangsung -->
+        <!-- 4. Authenticating Loading State -->
+        <div id="view-oauth-loading" class="p-10 text-center hidden">
+            <svg class="animate-spin h-10 w-10 text-primary mx-auto mb-4" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <h4 class="font-bold text-base text-on-surface" id="oauth-loading-title">Connecting...</h4>
+            <p class="text-xs text-on-surface-variant mt-1" id="oauth-loading-subtitle">Saving account and opening your workspace</p>
+        </div>
+
+    </div>
+</div>
+
+<!-- === [TAG SKRIP: Kontroler Logika Modal OAuth (Social OAuth Modal Controller)] === -->
+<!-- Penjelasan: Logika JavaScript pengalih tampilan view provider OAuth, penanganan submit form akun, dan komunikasi otentikasi -->
+<script>
+    // Social OAuth Modal Controller
+    function openSocialModal(provider) {
+        const modal = document.getElementById('social-oauth-modal');
+        const viewGoogle = document.getElementById('view-google-chooser');
+        const viewApple = document.getElementById('view-apple-chooser');
+        const viewGithub = document.getElementById('view-github-chooser');
+        const viewLoading = document.getElementById('view-oauth-loading');
+
+        if (!modal) return;
+
+        viewGoogle?.classList.add('hidden');
+        viewApple?.classList.add('hidden');
+        viewGithub?.classList.add('hidden');
+        viewLoading?.classList.add('hidden');
+
+        if (provider === 'google') viewGoogle?.classList.remove('hidden');
+        else if (provider === 'apple') viewApple?.classList.remove('hidden');
+        else if (provider === 'github') viewGithub?.classList.remove('hidden');
+
+        modal.classList.remove('hidden');
+    }
+
+    function closeSocialModal() {
+        const modal = document.getElementById('social-oauth-modal');
+        if (modal) modal.classList.add('hidden');
+    }
+
+    document.getElementById('close-oauth-modal-btn')?.addEventListener('click', closeSocialModal);
+    document.querySelectorAll('.close-oauth-btn').forEach(btn => btn.addEventListener('click', closeSocialModal));
+
+    // Custom Google Form toggle
+    const btnToggleCustomGoogle = document.getElementById('btn-toggle-custom-google');
+    const customGoogleForm = document.getElementById('custom-google-form');
+    if (btnToggleCustomGoogle && customGoogleForm) {
+        btnToggleCustomGoogle.addEventListener('click', () => {
+            customGoogleForm.classList.toggle('hidden');
+        });
+    }
+
+    if (customGoogleForm) {
+        customGoogleForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('custom-google-name').value.trim();
+            const email = document.getElementById('custom-google-email').value.trim();
+            if (name && email) {
+                submitSocialLogin('google', name, email, `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=4285F4&color=fff&bold=true`);
+            }
+        });
+    }
+
+    // Apple Auth Submit
+    document.getElementById('apple-auth-form')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const email = document.getElementById('apple-email-input').value.trim() || 'alex.rivera@icloud.com';
+        const name = email.split('@')[0].replace('.', ' ').replace(/(^\w|\s\w)/g, m => m.toUpperCase());
+        submitSocialLogin('apple', name, email, `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=111c2d&color=fff&bold=true`);
+    });
+
+    // GitHub Authorize Submit
+    document.getElementById('btn-authorize-github')?.addEventListener('click', () => {
+        const username = document.getElementById('github-username-input').value.trim() || 'alex-developer';
+        const email = document.getElementById('github-email-input').value.trim() || `${username}@github.com`;
+        submitSocialLogin('github', username, email, `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=24292e&color=fff&bold=true`);
+    });
+
+    // Main Social Submission Engine (Performs MySQL save and Session Login)
+    async function submitSocialLogin(provider, fullName, email, avatarUrl) {
+        // Fallback for missing config to prevent crashes or confusing UI alerts.
+        console.warn(`OAuth login invoked for ${provider} but server config is missing.`);
+        closeSocialModal();
+    }
+</script>

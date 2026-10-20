@@ -1,0 +1,58 @@
+<!-- === [TAG TEMPLATE: Layout Dasar Utama (base.html)] === -->
+<!-- Penjelasan: Kerangka HTML dasar yang mewariskan struktur ke seluruh halaman: meta viewport, token CSRF, stylesheet Tailwind, icon fonts, dan script animasi -->
+<!DOCTYPE html>
+<html class="light" lang="id">
+<head>
+    <!-- === [TAG META: Konfigurasi Metadata & Token CSRF] === -->
+    <!-- Penjelasan: Pengaturan encoding UTF-8, responsivitas layar mobile, dan token keamanan CSRF untuk request API Fetch -->
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <meta name="csrf-token" content="{{ csrf_token }}" />
+    <title>{% block title %}DocuMind{% endblock %}</title>
+    
+    <!-- 
+    [WARNING - PRODUCTION DEPLOYMENT] 
+    Tailwind Play CDN is used here for rapid development. It is NOT recommended for production.
+    To compile for offline/production use, run:
+    npx tailwindcss -i ./static/css/style.css -o ./static/css/output.css --minify
+    Then remove this CDN script and ensure you link to output.css below.
+    -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    
+    <!-- Tailwind Configuration -->
+    <script src="{{ url_for('static', filename='js/tailwind.config.js') }}"></script>
+    
+    <!-- Static Local CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+    
+    <!-- === [TAG STYLES: Pengaturan Gaya Ikon & CSS Tambahan] === -->
+    <!-- Base Styles -->
+    <style>
+        .material-symbols-outlined {
+          font-variation-settings:
+          'FILL' 0,
+          'wght' 400,
+          'GRAD' 0,
+          'opsz' 24;
+        }
+        {% block extra_css %}{% endblock %}
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md antialiased min-h-screen {% block body_class %}{% endblock %}">
+
+    <!-- === [TAG KONTEN: Blok Konten Halaman Spesifik] === -->
+    {% block content %}{% endblock %}
+
+    <!-- === [TAG SCRIPT: Pustaka JavaScript Global] === -->
+    <!-- Penjelasan: Library animasi GSAP, handler animasi interaktif kustom, dan modul proteksi CSRF -->
+    <!-- Global Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/gsap.min.js"></script>
+    <script src="{{ url_for('static', filename='js/animations.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/csrf.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

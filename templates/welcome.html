@@ -1,0 +1,449 @@
+<!-- === [TAG TEMPLATE: Halaman Utama / Landing Page (welcome.html)] === -->
+<!-- Penjelasan: Halaman perkenalan produk DocuMind yang memuat latar belakang shader WebGL dinamis, navigasi atas, bagian hero teks & call-to-action, logo 3D Three.js interaktif, dan footer -->
+{% extends "base.html" %}
+
+{% block title %}DocuMind - Your Documents, Reimagined by AI{% endblock %}
+
+{% block extra_css %}
+        .animate-in {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        
+        .delay-100 { animation-delay: 100ms; }
+        .delay-200 { animation-delay: 200ms; }
+        .delay-300 { animation-delay: 300ms; }
+        .delay-400 { animation-delay: 400ms; }
+        .delay-500 { animation-delay: 500ms; }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+        }
+{% endblock %}
+
+{% block body_class %}bg-surface font-sans overflow-x-hidden selection:bg-primary-container selection:text-on-primary-container scroll-smooth{% endblock %}
+
+{% block content %}
+
+<!-- === [TAG KOMPONEN: Latar Belakang Shader WebGL Dinamis (Background Shader)] === -->
+<!-- Penjelasan: Animasi shader WebGL kanvas cairan warna ungu/indigo yang merespons pergerakan kursor mouse secara interaktif -->
+<!-- Background Shader -->
+<div class="fixed inset-0 w-full h-full z-[-1] pointer-events-none">
+    <div class="absolute inset-0 w-full h-full opacity-60" style="display:block;">
+        <canvas id="shader-canvas-ANIMATION_16" style="display:block;width:100%;height:100%"></canvas>
+        <script>
+        (function() {
+          const canvas = document.getElementById('shader-canvas-ANIMATION_16');
+
+          function syncSize() {
+            const w = canvas.clientWidth  || 1280;
+            const h = canvas.clientHeight || 720;
+            if (canvas.width !== w || canvas.height !== h) {
+              canvas.width  = w;
+              canvas.height = h;
+            }
+          }
+          if (typeof ResizeObserver !== 'undefined') {
+            new ResizeObserver(syncSize).observe(canvas);
+          }
+          syncSize();
+
+          const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+          if (!gl) return;
+          const vs = `attribute vec2 a_position;
+varying vec2 v_texCoord;
+void main() {
+  v_texCoord = a_position * 0.5 + 0.5;
+  gl_Position = vec4(a_position, 0.0, 1.0);
+}`;
+          const fs = `precision highp float;
+varying vec2 v_texCoord;
+uniform float u_time;
+uniform vec2 u_resolution;
+
+vec3 hsb2rgb(vec3 c) {
+    vec3 rgb = clamp(abs(mod(c.x * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0);
+    rgb = rgb * rgb * (3.0 - 2.0 * rgb);
+    return c.z * mix(vec3(1.0), rgb, c.y);
+}
+
+void main() {
+    vec2 st = v_texCoord;
+    float time = u_time * 0.2;
+    
+    // Create multiple shifting noise layers
+    float n1 = sin(st.x * 3.0 + time) * cos(st.y * 2.0 - time * 0.5);
+    float n2 = sin(st.y * 4.0 - time * 0.7) * cos(st.x * 5.0 + time * 0.3);
+    float n3 = sin(length(st - 0.5) * 8.0 - time);
+    
+    float noise = (n1 + n2 + n3) / 3.0;
+    
+    // DocuMind Brand Colors (Indigo-focused)
+    vec3 color1 = vec3(0.31, 0.27, 0.90); // #4f46e5 (Primary)
+    vec3 color2 = vec3(0.18, 0.16, 0.45); // Darker Indigo
+    vec3 color3 = vec3(0.5, 0.5, 1.0);    // Light Blue/Indigo
+    
+    vec3 color = mix(color1, color2, noise * 0.5 + 0.5);
+    color = mix(color, color3, n3 * 0.3 + 0.3);
+    
+    // Soft vignette
+    float d = length(st - 0.5);
+    color *= 1.0 - d * 0.5;
+    
+    gl_FragColor = vec4(color, 1.0);
+}`;
+          function cs(type, src) {
+            const s = gl.createShader(type);
+            gl.shaderSource(s, src);
+            gl.compileShader(s);
+            return s;
+          }
+          const prog = gl.createProgram();
+          gl.attachShader(prog, cs(gl.VERTEX_SHADER, vs));
+          gl.attachShader(prog, cs(gl.FRAGMENT_SHADER, fs));
+          gl.linkProgram(prog);
+          gl.useProgram(prog);
+          const buf = gl.createBuffer();
+          gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+          gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+          const pos = gl.getAttribLocation(prog, 'a_position');
+          gl.enableVertexAttribArray(pos);
+          gl.vertexAttribPointer(pos, 2, gl.FLOAT, false, 0, 0);
+          const uTime = gl.getUniformLocation(prog, 'u_time');
+          const uRes = gl.getUniformLocation(prog, 'u_resolution');
+          const uMouse = gl.getUniformLocation(prog, 'u_mouse');
+
+          let mouse = { x: canvas.width / 2, y: canvas.height / 2 };
+          window.addEventListener('mousemove', (event) => {
+            const rect = canvas.getBoundingClientRect();
+            if (rect.width && rect.height) {
+              const nx = (event.clientX - rect.left) / rect.width;
+              const ny = 1.0 - (event.clientY - rect.top) / rect.height;
+              mouse.x = nx * canvas.width;
+              mouse.y = ny * canvas.height;
+            }
+          });
+
+          function render(t) {
+            if (typeof ResizeObserver === 'undefined') syncSize();
+            gl.viewport(0, 0, canvas.width, canvas.height);
+            if (uTime) gl.uniform1f(uTime, t * 0.001);
+            if (uRes) gl.uniform2f(uRes, canvas.width, canvas.height);
+            if (uMouse) gl.uniform2f(uMouse, mouse.x, mouse.y);
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+            requestAnimationFrame(render);
+          }
+          render(0);
+        })();
+        </script>
+    </div>
+</div>
+
+<!-- === [TAG KOMPONEN: Navigasi Atas Publik (Public Top Navigation Bar)] === -->
+<!-- Penjelasan: Bilah navigasi melayang dengan logo DocuMind serta tautan autentikasi menuju halaman Masuk (Login) dan Daftar (Register) -->
+<!-- TopNavBar (Full-Width Edge-to-Edge with centered inner container) -->
+<nav class="fixed top-0 left-0 right-0 w-full z-50 bg-surface-container-lowest/85 backdrop-blur-md dark:bg-inverse-surface/85 border-b border-outline-variant/20 transition-all duration-300" id="mainNav">
+    <div class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex justify-between items-center">
+        <div class="flex items-center gap-8">
+            <a class="text-title-md font-title-md font-bold tracking-tight text-on-surface dark:text-inverse-on-surface flex items-center gap-3 group" href="{{ url_for('main.welcome') }}">
+                <img src="{{ url_for('static', filename='images/documind_logo.png') }}" alt="DocuMind Logo" class="h-10 w-10 object-contain rounded-full group-hover:scale-105 transition-transform duration-300 shadow-sm border border-outline-variant/30 bg-white">
+                <span class="font-black text-xl text-primary tracking-tight">DocuMind</span>
+            </a>
+        </div>
+        <div class="flex items-center gap-3">
+            <a class="inline-flex items-center justify-center px-5 py-2.5 bg-primary/10 border border-primary/25 text-primary hover:bg-primary hover:text-white rounded-xl text-label-md font-label-md font-bold transition-all hover:-translate-y-0.5 hover:shadow-md shadow-sm" href="{{ url_for('main.login') }}">Masuk</a>
+            <a class="inline-flex items-center justify-center px-5 py-2.5 bg-primary text-on-primary rounded-xl text-label-md font-label-md font-bold hover:bg-[#4338CA] transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/20 shadow-md" href="{{ url_for('main.register') }}">Daftar</a>
+        </div>
+    </div>
+</nav>
+
+<!-- === [TAG KOMPONEN: Bagian Hero & Ajakan Bertindak (Hero Section & CTA)] === -->
+<!-- Penjelasan: Judul utama 'Cari Isi di Dalam Dokumen', uraian nilai proposisi OCR Full-Text, dan tombol registrasi 'Mulai Sekarang Gratis' -->
+<!-- Main Content -->
+<main class="relative pt-32 pb-24 md:pt-40 md:pb-32 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto min-h-screen flex flex-col justify-center">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center relative z-10">
+        
+        <!-- Hero Text -->
+        <div class="flex flex-col items-start gap-6 max-w-2xl">
+            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface-container-high border border-outline-variant/40 text-label-md font-label-md font-bold text-primary animate-in shadow-sm">
+                <span class="relative flex h-2.5 w-2.5">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary"></span>
+                </span>
+                Memperkenalkan DocuMind OCR 2.0
+            </div>
+
+            <h1 class="text-display-lg font-display-lg text-on-surface tracking-tight animate-in delay-100 text-4xl sm:text-5xl lg:text-6xl font-black leading-tight">
+                Cari Isi di Dalam Dokumen,<br>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-indigo-500">Bukan Hanya Nama Filenya.</span>
+            </h1>
+
+            <p class="text-body-lg font-body-lg text-on-surface-variant max-w-xl animate-in delay-200 leading-relaxed text-base sm:text-lg">
+                Ubah arsip statis menjadi data cerdas yang dapat dicari secara instan. DocuMind memanfaatkan pengenalan karakter optik tingkat lanjut (OCR) dan pencarian Full-Text cerdas untuk menemukan dokumen berdasarkan nama maupun isi teksnya.
+            </p>
+
+            <div class="flex items-center gap-4 mt-2 animate-in delay-300 w-full sm:w-auto">
+                <a href="{{ url_for('main.register') }}" class="w-full sm:w-auto px-8 py-3.5 bg-primary text-on-primary rounded-xl text-title-md font-title-md font-bold hover:bg-[#4338CA] transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/30 flex items-center justify-center gap-2 shadow-lg shadow-primary/20">
+                    Mulai Sekarang Gratis
+                    <span class="material-symbols-outlined text-[1.2em]">arrow_forward</span>
+                </a>
+            </div>
+
+            <div class="flex items-center gap-4 mt-6 pt-6 border-t border-outline-variant/30 animate-in delay-400 w-full">
+                <div class="text-label-md font-label-md text-on-surface-variant font-medium">
+                    <span class="font-bold text-on-surface">Sistem Manajemen Dokumen Cerdas</span> & OCR Berbasis AI
+                </div>
+            </div>
+        </div>
+
+        <!-- === [TAG KOMPONEN: Logo 3D Interaktif Three.js (Interactive 3D Emblem)] === -->
+        <!-- Penjelasan: Render emblem koin 3D DocuMind berbasis Three.js dengan rotasi interaktif mengikuti pergerakan kursor mouse dan kartu melayang status OCR -->
+        <!-- Hero Asset: 3D Round/Circular DocuMind Emblem & Floating Badges -->
+        <div class="relative w-full h-[480px] lg:h-[640px] flex items-center justify-center animate-in delay-300">
+            <!-- Pulsing Ambient Glow Behind Circular Logo -->
+            <div class="absolute w-72 h-72 lg:w-96 lg:h-96 bg-primary/25 rounded-full blur-3xl -z-0 pointer-events-none animate-pulse-soft"></div>
+            <div class="absolute w-60 h-60 lg:w-80 lg:h-80 bg-secondary-container/20 rounded-full blur-2xl -z-0 pointer-events-none"></div>
+
+            <!-- 3D Circular Logo Canvas -->
+            <div class="absolute inset-0 w-full h-full z-10 flex items-center justify-center" id="hero-logo-canvas-wrap">
+                <script src="https://ajax.googleapis.com/ajax/libs/threejs/r125/three.min.js"></script>
+                <div id="threejs-container-ANIMATION_17" style="width:100%;height:100%"></div>
+                <script>
+                (function() {
+                  const container = document.getElementById('threejs-container-ANIMATION_17');
+                  if (!container) return;
+
+                  const scene = new THREE.Scene();
+                  const width = container.clientWidth || 600;
+                  const height = container.clientHeight || 600;
+                  const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
+                  camera.position.z = 7.0;
+
+                  const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+                  renderer.setSize(width, height);
+                  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+                  container.appendChild(renderer.domElement);
+
+                  const group = new THREE.Group();
+                  scene.add(group);
+
+                  // Glowing Ring behind the Round Logo
+                  const ringGeo = new THREE.RingGeometry(2.4, 2.48, 64);
+                  const ringMat = new THREE.MeshBasicMaterial({
+                      color: 0x4f46e5,
+                      side: THREE.DoubleSide,
+                      transparent: true,
+                      opacity: 0.65
+                  });
+                  const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+                  ringMesh.position.z = -0.35;
+                  group.add(ringMesh);
+
+                  // Outer dashed orbital ring
+                  const orbitGeo = new THREE.RingGeometry(2.9, 2.94, 64);
+                  const orbitMat = new THREE.MeshBasicMaterial({
+                      color: 0x6cf8bb,
+                      side: THREE.DoubleSide,
+                      transparent: true,
+                      opacity: 0.45
+                  });
+                  const orbitMesh = new THREE.Mesh(orbitGeo, orbitMat);
+                  orbitMesh.position.z = -0.45;
+                  group.add(orbitMesh);
+
+                  // Create perfectly circular texture from documind_logo.png via 2D Canvas
+                  const img = new Image();
+                  img.crossOrigin = "anonymous";
+                  img.src = "{{ url_for('static', filename='images/documind_logo.png') }}";
+                  img.onload = function() {
+                      const cvs = document.createElement('canvas');
+                      cvs.width = 512;
+                      cvs.height = 512;
+                      const ctx = cvs.getContext('2d');
+
+                      // Draw circular clip path
+                      ctx.beginPath();
+                      ctx.arc(256, 256, 250, 0, Math.PI * 2);
+                      ctx.closePath();
+                      ctx.clip();
+
+                      // White solid background inside circle
+                      ctx.fillStyle = '#ffffff';
+                      ctx.fill();
+
+                      // Draw logo centered inside circle
+                      ctx.drawImage(img, 24, 24, 464, 464);
+
+                      // Circular inner ring border
+                      ctx.strokeStyle = '#4f46e5';
+                      ctx.lineWidth = 10;
+                      ctx.stroke();
+
+                      const circularTexture = new THREE.CanvasTexture(cvs);
+                      circularTexture.generateMipmaps = true;
+                      circularTexture.minFilter = THREE.LinearMipmapLinearFilter;
+
+                      // 1. Front Circular Face with Upright Horizontal Orientation
+                      const frontGeo = new THREE.CircleGeometry(2.35, 64);
+                      const faceMat = new THREE.MeshStandardMaterial({
+                          map: circularTexture,
+                          metalness: 0.1,
+                          roughness: 0.35,
+                          side: THREE.FrontSide
+                      });
+                      const frontMesh = new THREE.Mesh(frontGeo, faceMat);
+                      frontMesh.position.z = 0.081;
+                      group.add(frontMesh);
+
+                      // 2. Back Circular Face
+                      const backGeo = new THREE.CircleGeometry(2.35, 64);
+                      backGeo.rotateY(Math.PI);
+                      const backMesh = new THREE.Mesh(backGeo, faceMat);
+                      backMesh.position.z = -0.081;
+                      group.add(backMesh);
+
+                      // 3. Smooth Metallic 3D Rim / Bezel
+                      const rimGeo = new THREE.CylinderGeometry(2.35, 2.35, 0.16, 64, 1, true);
+                      rimGeo.rotateX(Math.PI / 2);
+                      const rimMat = new THREE.MeshStandardMaterial({
+                          color: 0x3525cd,
+                          metalness: 0.85,
+                          roughness: 0.25,
+                          side: THREE.DoubleSide
+                      });
+                      const rimMesh = new THREE.Mesh(rimGeo, rimMat);
+                      group.add(rimMesh);
+                  };
+
+                  // Lighting
+                  const mainLight = new THREE.DirectionalLight(0xffffff, 1.4);
+                  mainLight.position.set(5, 6, 8);
+                  scene.add(mainLight);
+
+                  const indigoLight = new THREE.PointLight(0x4f46e5, 2.5, 25);
+                  indigoLight.position.set(-4, -3, 5);
+                  scene.add(indigoLight);
+
+                  const tealLight = new THREE.PointLight(0x6cf8bb, 1.5, 20);
+                  tealLight.position.set(4, -4, 4);
+                  scene.add(tealLight);
+
+                  const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+                  scene.add(ambientLight);
+
+                  // Mouse interaction & Parallax
+                  let targetRotationX = 0;
+                  let targetRotationY = 0;
+                  let mouseX = 0;
+                  let mouseY = 0;
+
+                  window.addEventListener('mousemove', (e) => {
+                      const windowHalfX = window.innerWidth / 2;
+                      const windowHalfY = window.innerHeight / 2;
+                      mouseX = (e.clientX - windowHalfX) / windowHalfX;
+                      mouseY = (e.clientY - windowHalfY) / windowHalfY;
+                  });
+
+                  // Animation Loop
+                  let clock = new THREE.Clock();
+                  function animate() {
+                      requestAnimationFrame(animate);
+                      const t = clock.getElapsedTime();
+
+                      // Smooth floating motion
+                      group.position.y = Math.sin(t * 1.5) * 0.15;
+                      
+                      // Target rotations with mouse tracking + auto rotation
+                      targetRotationY = (mouseX * 0.45) + Math.sin(t * 0.6) * 0.12;
+                      targetRotationX = -(mouseY * 0.35) + Math.cos(t * 0.8) * 0.08;
+
+                      group.rotation.y += (targetRotationY - group.rotation.y) * 0.06;
+                      group.rotation.x += (targetRotationX - group.rotation.x) * 0.06;
+
+                      // Rotate background rings at different speeds
+                      ringMesh.rotation.z = t * 0.2;
+                      orbitMesh.rotation.z = -t * 0.15;
+
+                      renderer.render(scene, camera);
+                  }
+
+                  window.addEventListener('resize', () => {
+                      const w = container.clientWidth || window.innerWidth;
+                      const h = container.clientHeight || window.innerHeight;
+                      camera.aspect = w / h;
+                      camera.updateProjectionMatrix();
+                      renderer.setSize(w, h);
+                  });
+
+                  animate();
+                })();
+                </script>
+            </div>
+
+            <!-- Decorative Floating Glass Cards -->
+            <div class="absolute top-1/4 -left-4 sm:-left-8 glass-panel p-4 rounded-2xl shadow-xl z-20 animate-in delay-400 max-w-[210px] border border-white/80">
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="p-2 bg-emerald-100 text-emerald-700 rounded-xl">
+                        <span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                    </div>
+                    <span class="text-xs font-black text-on-surface">OCR Selesai</span>
+                </div>
+                <div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+                    <div class="bg-primary h-full w-full rounded-full"></div>
+                </div>
+            </div>
+
+            <div class="absolute bottom-1/4 -right-4 sm:-right-8 glass-panel p-4 rounded-2xl shadow-xl z-20 animate-in delay-500 border border-white/80">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                        <span class="material-symbols-outlined text-2xl">analytics</span>
+                    </div>
+                    <div>
+                        <div class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Akurasi</div>
+                        <div class="text-xl font-black text-on-surface">99.9%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- === [TAG KOMPONEN: Footer Halaman Publik (Public Footer)] === -->
+<!-- Penjelasan: Informasi hak cipta dan penjenamaan merek aplikasi di bagian bawah landing page -->
+<!-- Footer (Full-Width Edge-to-Edge with centered inner container) -->
+<footer class="w-full bg-surface-container-lowest/90 dark:bg-inverse-surface border-t border-outline-variant/20 relative z-10">
+    <div class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div class="flex items-center gap-3">
+            <img src="{{ url_for('static', filename='images/documind_logo.png') }}" alt="DocuMind Logo" class="h-9 w-9 object-contain rounded-full shadow-sm border border-outline-variant/30 bg-white">
+            <span class="font-black text-lg text-primary tracking-tight">DocuMind</span>
+        </div>
+        <div class="text-sm font-medium text-on-surface-variant">
+            &copy; 2026 DocuMind AI. Hak Cipta Dilindungi.
+        </div>
+    </div>
+</footer>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Smooth scroll effect for navbar
+    window.addEventListener('scroll', () => {
+        const nav = document.getElementById('mainNav');
+        if (!nav) return;
+        if (window.scrollY > 20) {
+            nav.classList.add('shadow-md');
+        } else {
+            nav.classList.remove('shadow-md');
+        }
+    });
+</script>
+{% endblock %}

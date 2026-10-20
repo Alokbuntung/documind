@@ -1,0 +1,106 @@
+<!-- === [TAG TEMPLATE: Halaman Masuk Akun Apple ID (oauth_apple.html)] === -->
+<!-- Penjelasan: Tampilan otentikasi Apple ID bertema gelap dengan efek blur kaca (Apple design language) untuk masuk cepat ke aplikasi DocuMind -->
+{% extends "base.html" %}
+
+{% block title %}Sign in with Apple{% endblock %}
+
+{% block extra_css %}
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", sans-serif;
+            background-color: #000000;
+            color: #f5f5f7;
+        }
+        .apple-card {
+            background: rgba(28, 28, 30, 0.85);
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+    </style>
+{% endblock %}
+
+{% block body_class %}min-h-screen flex flex-col justify-between items-center p-4 sm:p-6 md:p-8{% endblock %}
+
+{% block content %}
+    <div></div>
+
+    <!-- === [TAG KOMPONEN: Kartu Masuk Apple ID (Apple Card Container)] === -->
+    <!-- Penjelasan: Kontainer autentikasi Apple dengan logo resmi, pilihan akun terdeteksi, atau input email Apple ID kustom -->
+    <div class="w-full max-w-[500px] apple-card rounded-[24px] p-8 sm:p-10 shadow-2xl relative">
+        <!-- Loading Overlay -->
+        <div id="apple-loading" class="hidden absolute inset-0 bg-black/90 rounded-[24px] flex flex-col items-center justify-center z-50 animate-in fade-in">
+            <svg class="animate-spin h-10 w-10 text-white mb-4" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p class="text-sm font-medium text-neutral-300" id="apple-loading-text">Menghubungkan ke Apple ID...</p>
+        </div>
+
+        <div class="flex flex-col items-center text-center mb-6">
+            <div class="w-14 h-14 rounded-2xl bg-white text-black flex items-center justify-center mb-4 shadow-lg">
+                <svg class="w-7 h-7 fill-current" viewBox="0 0 170 170">
+                    <path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.74 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.35.13-9.16-1.9-14.42-6.08-3.69-3.08-7.77-7.96-12.24-14.64-7.23-10.9-12.92-23.01-17.06-36.31-4.14-13.3-6.21-25.75-6.21-37.36 0-14.73 3.8-27.27 11.41-37.62 7.61-10.36 17.29-15.65 29.04-15.89 4.35 0 9.49 1.16 15.42 3.49 5.93 2.33 9.77 3.52 11.51 3.58 1.49 0 5.51-1.3 12.06-3.89 6.56-2.59 11.96-3.76 16.22-3.52 14.15.77 24.97 5.93 32.48 15.49-12.44 7.62-18.52 17.88-18.23 30.77.29 10.12 4.16 18.67 11.62 25.64 7.46 6.97 16.32 10.96 26.58 11.97-2.33 7.08-4.99 14.07-7.98 20.97zM119.22 31.84c0-7.39 2.65-14.35 7.94-20.89 5.3-6.54 11.83-10.49 19.59-11.85.73 8.3-1.63 15.68-7.08 22.14-5.46 6.45-12.28 10.27-20.45 10.6z"/>
+                </svg>
+            </div>
+            <h1 class="text-2xl font-bold text-white tracking-tight">Sign in with Apple</h1>
+            <p class="text-xs text-neutral-400 mt-1">Gunakan Apple ID untuk masuk ke akun <span class="font-bold text-white">DocuMind</span></p>
+        </div>
+
+        <!-- Account Selection Cards -->
+        <div class="space-y-3 mb-6">
+            <div class="p-4 rounded-2xl bg-neutral-900 border border-neutral-800 flex items-center justify-between cursor-pointer hover:border-neutral-700 transition-all" onclick="selectAppleAccount('John Doe', 'user@apple.com')">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-neutral-700 to-neutral-500 flex items-center justify-center font-bold text-white shadow-inner">
+                        <span class="material-symbols-outlined text-lg">person</span>
+                    </div>
+                    <div>
+                        <div class="text-sm font-semibold text-white">John Doe</div>
+                        <div class="text-xs text-neutral-400">user@apple.com</div>
+                    </div>
+                </div>
+                <span class="material-symbols-outlined text-neutral-400 text-sm">arrow_forward_ios</span>
+            </div>
+
+            <!-- === [TAG FORMULIR: Input Apple ID Kustom] === -->
+            <!-- Penjelasan: Input alamat email akun Apple ID kustom (@icloud.com) secara langsung -->
+            <!-- Custom Apple ID Input -->
+            <form id="custom-apple-form" class="space-y-3 pt-2">
+                <div class="p-3.5 rounded-xl bg-neutral-900 border border-neutral-800">
+                    <label class="block text-[11px] font-medium text-neutral-400 mb-1">Gunakan Apple ID Lain</label>
+                    <input type="email" id="apple-custom-email" placeholder="contoh@icloud.com" class="w-full bg-transparent border-0 p-0 text-sm font-bold text-white focus:ring-0" required />
+                </div>
+                <button type="submit" class="w-full py-3 bg-white hover:bg-neutral-200 text-black font-bold text-sm rounded-xl transition-all shadow-md">
+                    Lanjutkan dengan Apple ID
+                </button>
+            </form>
+        </div>
+
+        <div class="text-center">
+            <a href="{{ url_for('main.welcome') }}" class="text-xs text-neutral-400 hover:text-white transition-colors">Batal dan Kembali</a>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="text-xs text-neutral-500 mt-6">
+        Hak Cipta &copy; 2026 Apple Inc. Seluruh hak cipta dilindungi undang-undang.
+    </div>
+
+{% endblock %}
+
+{% block extra_js %}
+    <!-- === [TAG SKRIP: Pengendali Interaksi Apple ID] === -->
+    <!-- Penjelasan: Penanganan submit akun Apple ID kustom dan pengalihan ke alur otentikasi -->
+    <script>
+        document.getElementById('custom-apple-form')?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('apple-custom-email').value.trim();
+            const name = email.split('@')[0].replace('.', ' ').replace(/(^\w|\s\w)/g, m => m.toUpperCase());
+            if (email) selectAppleAccount(name, email);
+        });
+
+        async function selectAppleAccount(fullName, email) {
+            console.warn('OAuth login dummy is disabled.');
+            window.location.href = "{{ url_for('main.login') }}";
+        }
+    </script>
+{% endblock %}
